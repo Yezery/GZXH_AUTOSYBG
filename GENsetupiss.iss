@@ -35,8 +35,8 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 OutputDir=C:\Users\11720\Desktop
-OutputBaseFilename=GEN_setup
-SetupIconFile=C:\Users\11720\Desktop\logo_w.ico
+OutputBaseFilename=GEN_windows
+SetupIconFile=C:\Users\11720\Desktop\installer.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

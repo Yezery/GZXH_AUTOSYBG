@@ -1,11 +1,11 @@
 ## MAC
-### pyinstaller --clean --noconfirm --strip --add-data "./logo.png:." --add-data "./config.json:config" --onedir --windowed -i logo.ico -n 'GEN' main.py
+### pyinstaller --clean --noconfirm --strip --add-data "./logo.png:." --add-data "./setup/config/config.json:config" --onedir --windowed -i logo.ico -n 'GEN' main.py
 
 ## MAC打包成dmg
-### create-dmg --volname "GEN Installer" --window-pos 200 200 --window-size 800 600 --icon-size 128 --icon "GEN.app" 150 150 --app-drop-link 600 150  dist/GEN_installer.dmg  dist/GEN.app
+### create-dmg --volname "GEN-insatller" --background "./source/bg.svg" --window-pos 400 200 --window-size 660 400 --icon-size 100  --icon "GEN.app" 160 185 --hide-extension "GEN.app" --app-drop-link 500 185  --volicon "./source/installer.icns"  dist/GEN-darwin.dmg  dist/GEN.app
 
 ## Windows
-### pyinstaller --clean --noconfirm --strip --add-data ".\\logo.png;." --add-data ".\\config.json;config" --upx-dir c:\Users\11720\Desktop\AUTOSYBG\.conda\Scripts\upx.exe  --onefile --windowed -i ".\\logo.ico" -n GEN main.py
+### pyinstaller --clean --noconfirm --strip --add-data ".\\logo.png;." --add-data ".\\setup\\config\\config.json;config" --onefile --windowed -i ".\\logo.ico" -n GEN main.py
 
 ## Windows打包成安装包
 ### 使用 Inno Setup 见 GENsetupiss.iss
