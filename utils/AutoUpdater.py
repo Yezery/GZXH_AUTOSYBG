@@ -7,7 +7,7 @@ import subprocess
 from packaging.version import Version
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from qfluentwidgets import MessageBox, ProgressRing, MessageBoxBase
-
+from task.LoadConfig import get_config
 from components.Message import createMessage
 
 class CustomMessageBox(MessageBoxBase):
@@ -110,7 +110,7 @@ class UpdateCheckThread(QThread):
                 if self.compare_versions(self.current_version, latest_version):
                     self.update_check_complete.emit(True, latest_version, download_url)
                 else:
-                    self.update_check_complete.emit(False, "当前已经是最新版本。", "")
+                    return
             else:
                 self.update_check_complete.emit(False, f"无法获取更新信息，状态码：{response.status_code}", "")
         except Exception as e:
@@ -132,7 +132,9 @@ class AutoUpdater:
         self.download_path = None
         self.parent = parent
         self.headers = {
-            "Accept": "application/json"  # 指定响应数据格式为 JSON
+            "Authorization": f"Bearer {get_config().config.get('UPDATE_TOKEN')}",
+            "Accept": "application/json",  # 指定响应数据格式为 JSON
+            "User-Agent": "Awesome-Octocat-App"
         }
         self.cmb = CustomMessageBox(self.parent)
 

@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QDialog,QFileDialog,QPushButton,QGraphicsOpacityEffect
 from PyQt5.QtCore import QEasingCurve,Qt,QStandardPaths,QPoint,pyqtSlot
-from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QSizePolicy
 from qfluentwidgets import ImageLabel,TextEdit,PrimaryPushButton,CardWidget,FlowLayout,BodyLabel,PushButton,LineEdit,TeachingTip,InfoBarIcon,TeachingTipTailPosition,pyqtSignal,CommandBarView,Action,FlyoutAnimationType,Flyout,StateToolTip,SmoothScrollArea
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Inches, Pt
@@ -19,31 +19,69 @@ class ImageInputGroup(QWidget):
         # 创建垂直布局
         self.layout = QVBoxLayout(self)
         self.layout.setAlignment(Qt.AlignTop)
+        self.adjustSize()
 
-        self.image_label = ImageLabel(image_path)
-        self.image_label.scaledToWidth(340)
-        self.image_label.setBorderRadius(8, 8, 8, 8)
+        if image_path:
+            # 图片标签
+            self.image_label = ImageLabel(image_path)
+            self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            self.image_label.scaledToWidth(340)
+            self.image_label.setBorderRadius(8, 8, 8, 8)
 
         # 文件名编辑框
         self.filename_edit = TextEdit(self)
         self.filename_edit.setAcceptRichText(True)
-        self.filename_edit.setText(os.path.basename(image_path))  # 默认显示文件名
+        if image_path:
+            self.filename_edit.setText(os.path.basename(image_path))
         self.filename_edit.setFixedHeight(100)  # 设置固定高度
-        self.filename_edit.setPlaceholderText("输入文件名")
+        self.filename_edit.setPlaceholderText("请输入描述")
 
         # 创建按钮垂直布局
         button_layout = QVBoxLayout()
-        self.view_button = PrimaryPushButton("查看", self)
-        self.view_button.clicked.connect(lambda: self.view_image(image_path))
-        self.view_button.setFont(QFont("Microsoft YaHei", 12))
-        self.view_button.setFixedWidth(50)  # 设置固定宽度
-        self.delete_button = PushButton("删除", self)
-        self.delete_button.setFont(QFont("Microsoft YaHei", 12))
+
+        if image_path:
+            self.view_button = QPushButton("查看", self)
+            self.view_button.setStyleSheet(
+                """
+                QPushButton {
+                    font-size: 14px;
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    padding: 10px;
+                }
+                QPushButton:hover {
+                    background-color: #45a049;
+                }
+                """
+            )
+            self.view_button.clicked.connect(lambda: self.view_image(image_path))
+        # self.view_button.setFont(QFont("Microsoft YaHei", 12))
+        # self.view_button.setFixedWidth(50)  # 设置固定宽度
+        self.delete_button = QPushButton("删除", self)
+        self.delete_button.setStyleSheet(
+             """
+            QPushButton {
+                font-size: 14px;
+                background-color: #ff6b6b;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #ff4b4b;
+            }
+            """
+        )
+        # self.delete_button.setFont(QFont("Microsoft YaHei", 12))
         self.delete_button.clicked.connect(self.delete_group)
-        self.delete_button.setFixedWidth(50)  # 设置固定宽度
+        # self.delete_button.setFixedWidth(50)  # 设置固定宽度
 
         # 将按钮添加到垂直布局
-        button_layout.addWidget(self.view_button)
+        if image_path:
+            button_layout.addWidget(self.view_button)
         button_layout.addWidget(self.delete_button)
 
         # 创建水平布局，用于将按钮布局放在输入框右侧
@@ -52,20 +90,25 @@ class ImageInputGroup(QWidget):
         input_layout.addWidget(self.filename_edit)  # 右边为输入框
 
         # 将图片标签和输入框布局加入主布局
-        self.layout.addWidget(self.image_label)
+        if image_path:
+            self.layout.addWidget(self.image_label)
         self.layout.addLayout(input_layout)
 
         # 用于存储输入框与图片路径的映射
-        self.image_path = image_path
+        if image_path:
+            self.image_path = image_path
+        else:
+            self.image_path = None
         self.update_image_map()
         self.filename_edit.textChanged.connect(self.update_image_map)
 
 
     def update_image_map(self):
-        """更新图片路径与输入框的映射"""
+        """更新输入框对象与图片路径的映射"""
         parent = self.parentObject
         if parent:
             parent.input_image_map[self] = self.image_path
+        print(parent.input_image_map)
             
     def delete_group(self):
         """删除图片输入组"""
@@ -103,6 +146,8 @@ class ImageInputGroup(QWidget):
         zoomed_layout.addWidget(image_label)
         zoomed_window.exec_()
 
+from PyQt5.QtWidgets import QHBoxLayout, QSizePolicy
+
 class DropFileUploadImages(CardWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -111,41 +156,25 @@ class DropFileUploadImages(CardWidget):
         # 设置窗口属性
         self.setAcceptDrops(True)
 
-        # 主布局
+        # 主布局 - 使用 FlowLayout 或其他布局（根据需求）
         self.layout = FlowLayout(self, needAni=True)
-
-        # Customize animation
         self.layout.setAnimation(250, QEasingCurve.OutQuad)
 
+        # 创建一个 QWidget 来容纳绝对布局
+        self.container_widget = CardWidget(self)
+        self.container_layout = QVBoxLayout(self.container_widget)
+        self.container_layout.setContentsMargins(0, 0, 0, 0)
+        self.container_layout.setSpacing(0)
+        self.container_widget.setLayout(self.container_layout)
 
-        # 标签提示
-        self.label = BodyLabel("拖拽文件 或 点击选择图片文件", self)
-        self.label.setAcceptDrops(True)
-        self.label.setAlignment(Qt.AlignCenter)  # 居中对齐文本
-        self.label.setFixedWidth(370)
-        self.label.setFixedHeight(593)
-        # 设置占位符的样式表
-        self.label.setStyleSheet(
-            """
-            QLabel {
-                border-radius: 8px;        /* 圆角 */
-                font-size: 14px;
-                color: #555;
-            }
-            QLabel:hover {
-                border: 2px dashed #0078d4; /* 虚线边框 */
-            }
-            """
-        )
-
-        # 将占位符标签添加到布局中
-        self.layout.addWidget(self.label)
-
+        # 按钮组
+        self.button_group_widget = QWidget(self)
+        self.button_group_layout = QHBoxLayout(self.button_group_widget)
 
         # 清除全部按钮
-        self.clear_button = QPushButton("清除全部图片", self)
-        #横向充满
-        self.clear_button.setFixedWidth(350)
+        self.clear_button = QPushButton("清除全部", self)
+        self.clear_button.setFixedWidth(165)
+        self.clear_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.clear_button.setStyleSheet(
             """
             QPushButton {
@@ -162,9 +191,67 @@ class DropFileUploadImages(CardWidget):
             """
         )
         self.clear_button.clicked.connect(self.clear_all_image_groups)
-        self.clear_button.setVisible(False)
-        # 将清除按钮添加到布局中
-        self.layout.addWidget(self.clear_button)
+
+        # 添加无图描述按钮
+        self.add_no_image_button = QPushButton("添加无图描述", self)
+        self.add_no_image_button.setFixedWidth(165)
+        self.add_no_image_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.add_no_image_button.setStyleSheet(
+            """
+            QPushButton {
+                font-size: 14px;
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            """
+        )
+        # 可以连接到相应的函数，比如添加无图描述的功能
+        self.add_no_image_button.clicked.connect(self.add_no_image_description)
+
+        # 将按钮添加到按钮布局中
+        self.button_group_layout.addWidget(self.add_no_image_button)
+        self.button_group_layout.addWidget(self.clear_button)
+       
+
+        # 将按钮组添加到容器中
+        self.layout.addWidget(self.button_group_widget)
+
+        # 标签提示
+        self.label = BodyLabel("拖拽文件 或 点击选择图片文件", self)
+        self.label.setAlignment(Qt.AlignCenter)  # 居中对齐文本
+        self.label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # 设置占位符的样式表
+        self.label.setStyleSheet(
+            """
+            QLabel {
+                border-radius: 8px;        /* 圆角 */
+                font-size: 14px;
+                color: #555;
+                background-color: rgba(255, 255, 255, 0); /* 背景色与透明度 */
+            }
+            QLabel:hover {
+                color: #0078d4;
+                border: 2px dashed #0078d4; /* 虚线边框 */
+            }
+            """
+        )
+        # 将标签添加到容器布局中
+        self.container_layout.addWidget(self.label)
+        self.visible()
+
+    def resizeEvent(self, event):
+        """确保容器控件和子控件随父控件大小变化而更新位置和大小"""
+        super().resizeEvent(event)
+        # 重新定位按钮组和标签
+        self.container_widget.setGeometry(0, 0, self.width(), self.height())  # 标签下面部分
+        self.label.setGeometry(0, 0, self.width(), self.height())  # 标签填满容器
 
     def dragEnterEvent(self, event):
         """鼠标拖入事件"""
@@ -200,7 +287,6 @@ class DropFileUploadImages(CardWidget):
         self.visible()
 
     def visible(self):
-        print(self.input_image_map)
         if  self.input_image_map == {}:
             self.clear_button.setVisible(False)
             self.layout.update()
@@ -218,6 +304,11 @@ class DropFileUploadImages(CardWidget):
         # 清空映射字典
         self.input_image_map.clear()
 
+    def add_no_image_description(self):
+        """添加无图描述"""
+        no_image_group = ImageInputGroup(None,self)
+        self.layout.addWidget(no_image_group)
+        self.visible()
 
     def mousePressEvent(self, event):
         """鼠标点击事件，支持点击上传文件"""
@@ -417,7 +508,6 @@ class ProcessTask(CardWidget):
                 # 既没有文字也没有图片的情况
                 texts.append("无文字说明")
                 images.append(None)
-
         Config = get_config().config
         header = f"实验人：{Config['NAME']}（学号：{Config['ID']}）"
         # 修改页眉
@@ -477,6 +567,7 @@ class ProcessTask(CardWidget):
         if not self.doc:
             return
         try:
+            self.mainTask()
             self.add_result_list(self.doc, "docx")
         except Exception as e:
             createMessage(self.parentObject, title="发生错误", message=f"{e}", _type=0)
@@ -610,6 +701,7 @@ class AppInterface(SmoothScrollArea):
         # 在左侧滚动区域中放置一个 QWidget 作为容器
         left_widget = QWidget(left_scroll_area)
         left_layout = QVBoxLayout(left_widget)
+        left_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         left_layout.setAlignment(Qt.AlignTop)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(10)
@@ -634,6 +726,7 @@ class AppInterface(SmoothScrollArea):
         # 创建右侧滚动区域，放入 DropFileUploadImages
         self.right_scroll_area = SmoothScrollArea(self)
         self.right_scroll_area.setWidgetResizable(True)
+        self.right_scroll_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.drop_upload = DropFileUploadImages(self)
         self.right_scroll_area.setWidget(self.drop_upload)
 

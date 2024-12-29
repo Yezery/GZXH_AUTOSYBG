@@ -25,6 +25,8 @@ class SettingInterface(GroupHeaderCardWidget):
         self.apiKeyEdit.setPlaceholderText("请输入API_KEY")
         self.secretEdit = LineEdit()
         self.secretEdit.setPlaceholderText("请输入SECRET_KEY")
+        self.tokenEdit = LineEdit()
+        self.tokenEdit.setPlaceholderText("请输入UPDATE_TOKEN")
         self.refreshButton = ToolButton(FIF.SYNC)
         self.compileButton = PrimaryPushButton("保存")
         self.bottomLayout = QHBoxLayout()
@@ -53,18 +55,22 @@ class SettingInterface(GroupHeaderCardWidget):
         self.courseEdit.setText(self.systemConfig["COURSE"])
         self.apiKeyEdit.setText(self.systemConfig["API_KEY"])
         self.secretEdit.setText(self.systemConfig["SECRET_KEY"])
-        self.savePath.setContent(self.systemConfig["SAVE_PATH"])
+        self.tokenEdit.setText(self.systemConfig["UPDATE_TOKEN"])
+
+
+
         self.NAME.setContent(self.systemConfig["NAME"])
         self.ID.setContent(self.systemConfig["ID"])
         self.COURSE.setContent(self.systemConfig["COURSE"])
         self.APIKEY.setContent(self.systemConfig["API_KEY"])
         self.SECRETKEY.setContent(self.systemConfig["SECRET_KEY"])
         self.savePath.setContent(self.systemConfig["SAVE_PATH"])
+        self.UPDATE_TOKEN.setContent(self.systemConfig["UPDATE_TOKEN"])
 
     def init_widgets(self):
         """初始化组件默认值和样式"""
         self.savePathChooseButton.setFixedWidth(120)
-        for edit in [self.nameEdit, self.idEdit, self.courseEdit, self.apiKeyEdit, self.secretEdit]:
+        for edit in [self.nameEdit, self.idEdit, self.courseEdit, self.apiKeyEdit, self.secretEdit,self.tokenEdit]:
             edit.setFixedWidth(220)
 
     def init_layout(self):
@@ -82,7 +88,9 @@ class SettingInterface(GroupHeaderCardWidget):
         self.ID =self.addGroup(None, "学号", "设置学号", self.idEdit)
         self.APIKEY = self.addGroup(None, "API Key", "设置 API Key", self.apiKeyEdit)
         self.SECRETKEY = self.addGroup(None, "Secret Key", "设置 Secret Key", self.secretEdit)
+        self.UPDATE_TOKEN = self.addGroup(None, "更新 Token", "设置 UPDATE_TOKEN", self.tokenEdit)
         self.savePath = self.addGroup(None, "保存路径","", self.savePathChooseButton)
+
 
         # 添加底部工具栏
         self.vBoxLayout.addLayout(self.bottomLayout)
@@ -105,6 +113,8 @@ class SettingInterface(GroupHeaderCardWidget):
             api_key = self.apiKeyEdit.text().strip()
             secret_key = self.secretEdit.text().strip()
             save_path = self.savePath.contentLabel.text().strip()
+            update_token = self.tokenEdit.text().strip()
+
             # 检查输入值是否为空
             if not all([name, config_id, course, api_key, secret_key]):
                 createMessage(self,title="保存失败", message=f"所有字段都不能为空！",_type=2)
@@ -117,7 +127,8 @@ class SettingInterface(GroupHeaderCardWidget):
                 "COURSE": course,
                 "API_KEY": api_key,
                 "SECRET_KEY": secret_key,
-                "SAVE_PATH":  save_path
+                "SAVE_PATH":  save_path,
+                "UPDATE_TOKEN": update_token,
             })
 
             self.Config.save_config(self.systemConfig)
