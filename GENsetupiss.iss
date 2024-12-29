@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "GEN"
-#define MyAppVersion "1.0"
+#define MyAppVersion "V 1.1.1"
 #define MyAppPublisher "Ziv YE"
 #define MyAppURL "https://github.com/Yezery/GZXH_AUTOSYBG"
 #define MyAppExeName "GEN.exe"
@@ -36,7 +36,10 @@ DisableProgramGroupPage=yes
 ;PrivilegesRequired=lowest
 OutputDir=C:\Users\11720\Desktop
 OutputBaseFilename=GEN_windows
-SetupIconFile=C:\Users\11720\Desktop\installer.ico
+SetupIconFile=C:\Users\11720\Desktop\AUTOSYBG\source\installer.ico
+Uninstallable=yes
+UninstallDisplayName=卸载{#MyAppName}
+UninstallDisplayIcon=C:\Users\11720\Desktop\AUTOSYBG\source\installer.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

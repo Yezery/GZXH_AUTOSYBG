@@ -112,6 +112,7 @@ class UpdateCheckThread(QThread):
                 else:
                     return
             else:
+                print(response.json())
                 self.update_check_complete.emit(False, f"无法获取更新信息，状态码：{response.status_code}", "")
         except Exception as e:
             self.update_check_complete.emit(False, f"检测更新失败", "")
@@ -131,8 +132,9 @@ class AutoUpdater:
         self.current_version = current_version
         self.download_path = None
         self.parent = parent
+        print(get_config().config.get('UPDATE_TOKEN'))
         self.headers = {
-            "Authorization": f"Bearer {get_config().config.get('UPDATE_TOKEN')}",
+            "authorization": f"bearer {get_config().config.get('UPDATE_TOKEN')}",
             "Accept": "application/json",  # 指定响应数据格式为 JSON
             "User-Agent": "Awesome-Octocat-App"
         }

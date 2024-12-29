@@ -111,7 +111,7 @@ if __name__ == '__main__':
     w.setMinimumHeight(700)
     w.show()
     #  初始化自动更新器
-    updater = AutoUpdater(github_user="yezery", repo_name="GZXH_AUTOSYBG", current_version="v 1.1.1", parent=w)
+    updater = AutoUpdater(github_user="yezery", repo_name="GZXH_AUTOSYBG", current_version="v 1.1.0", parent=w)
     # 检测更新
     updater.check_for_update()
     app.exec()
