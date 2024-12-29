@@ -107,7 +107,7 @@ class UpdateCheckThread(QThread):
                     return
 
                 # 版本比较
-                if not self.compare_versions(self.current_version, latest_version):
+                if self.compare_versions(self.current_version, latest_version):
                     self.update_check_complete.emit(True, latest_version, download_url)
                 else:
                     self.update_check_complete.emit(False, "当前已经是最新版本。", "")
