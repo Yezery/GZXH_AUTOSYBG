@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QFrame,QHBoxLayout,QApplication
 from PyQt5.QtCore import Qt,QSize
 from PyQt5.QtGui import QIcon
 from qfluentwidgets import SubtitleLabel,setFont,MSFluentWindow,NavigationItemPosition,SplashScreen,TeachingTip,TeachingTipTailPosition,TeachingTipView
+from utils.AutoUpdater import AutoUpdater
 from view.app_interface import AppInterface
 from view.setting_interface import SettingInterface
 from view.summary_interface import SummaryInterface
@@ -57,7 +58,6 @@ class Window(MSFluentWindow):
     def initWindow(self):
         self.resize(900, 700)
         logo_path = self.resource_path("logo.png")
-        print(logo_path)
         self.setWindowIcon(QIcon(logo_path))
         self.setWindowTitle('SYBG-GEN')
 
@@ -110,9 +110,9 @@ if __name__ == '__main__':
     w.setMinimumWidth(900)
     w.setMinimumHeight(700)
     w.show()
-     # 初始化自动更新器
-    # updater = AutoUpdater(github_user="yezery", repo_name="your_repo_name", current_version="1.0.0", parent=None)
-    # # 检测更新
-    # updater.check_for_update()
+    #  初始化自动更新器
+    updater = AutoUpdater(github_user="yezery", repo_name="GZXH_AUTOSYBG", current_version="v1.1.0", parent=w)
+    # 检测更新
+    updater.check_for_update()
     app.exec()
     

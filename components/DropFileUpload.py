@@ -8,6 +8,7 @@ from components.Message import createMessage
 from task.LoadConfig import get_config
 from task import AI
 from qfluentwidgets import pyqtSignal,BodyLabel,StateToolTip
+from qfluentwidgets import FluentIcon as FIF
 
 class DropFileUploadDOCX(QWidget):
     ai_summary_generated = pyqtSignal(str) 
@@ -137,7 +138,6 @@ class DropFileUploadDOCX(QWidget):
             self.stateTooltip = StateToolTip('正在生成中', '请耐心等待哦～', self.parent)
             self.stateTooltip.move(self.parent.geometry().topRight() - QPoint(270, -10))
             self.stateTooltip.show()
-        try:
             Config = get_config().config
             if self.doc is not None:
                 content = ""
@@ -163,8 +163,7 @@ class DropFileUploadDOCX(QWidget):
                 self.worker.finished.connect(self.on_ai_success)
                 self.worker.error.connect(self.on_ai_error)
                 self.worker.start()
-        except Exception as e:
-            createMessage(self, title="发生错误", message=f"{e}", _type=0)
+           
 
 
     @pyqtSlot(str)
@@ -179,4 +178,8 @@ class DropFileUploadDOCX(QWidget):
     @pyqtSlot(str)
     def on_ai_error(self, error_message):
         """处理生成失败的信号"""
-        createMessage(self,title="发生错误", message=error_message, _type=0)
+        self.ai_summary_generated.emit(error_message)
+        if self.stateTooltip:
+            self.stateTooltip.setContent(f'生成失败了 😭')
+            self.stateTooltip.setState(True)
+            self.stateTooltip = None

@@ -1,4 +1,5 @@
 from qfluentwidgets import InfoBar,InfoBarPosition
+
 from PyQt5.QtCore import Qt
 
 def createMessage(parent=None,title="",message="",_type=3):

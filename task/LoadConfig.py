@@ -90,5 +90,4 @@ Config = LoadConfig()
 def get_config():
     """获取全局配置实例"""
     Config.refresh_config()
-    print("当前应用路径:", Config.get_app_path())
     return Config
