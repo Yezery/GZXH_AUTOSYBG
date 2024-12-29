@@ -1,6 +1,4 @@
-
 .DS_Store
 /build
-config.json
 /dist
 /*/__pycache__
