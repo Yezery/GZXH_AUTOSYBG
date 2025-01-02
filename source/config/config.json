@@ -2,20 +2,21 @@
     "User": {
         "ApiKey": "gJBWXXcfaIyQ1AXs5b6gyZPp",
         "SecretKey": "VAOa3QhPlE3o1tybWHvKfyXiJ85rGYTl",
-        "UpdateToken": "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",
-        "UserCourse": "22数媒6",
-        "UserId": "22054181",
-        "UserName": "叶正睿"
+        "UpdateToken": "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",
+        "UserCourse": "",
+        "UserId": "",
+        "UserName": ""
     },
     "Material": {
         "AcrylicBlurRadius": 0
     },
     "Update": {
-        "CheckUpdateAtStartUp": false
+        "CheckUpdateAtStartUp": true
     },
     "MainWindow": {
         "DpiScale": "Auto",
-        "Language": "zh_CN"
+        "Language": "zh_CN",
+        "MicaEnabled": false
     },
     "QFluentWidgets": {
         "ThemeColor": "#ff000000",

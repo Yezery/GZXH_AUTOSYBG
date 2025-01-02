@@ -111,7 +111,6 @@ class UpdateCheckThread(QThread):
                 else:
                     return
             else:
-                print(response.json())
                 self.update_check_complete.emit(False, f"无法获取更新信息，状态码：{response.status_code}", "")
         except Exception as e:
             self.update_check_complete.emit(False, f"检测更新失败", "")

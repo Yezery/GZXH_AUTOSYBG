@@ -128,7 +128,7 @@ if __name__ == '__main__':
     w.show()
     if cfg.get(cfg.checkUpdateAtStartUp):
         #  初始化自动更新器
-        updater = AutoUpdater(github_user="yezery", repo_name="GZXH_AUTOSYBG", current_version="V 1.2.0", parent=w)
+        updater = AutoUpdater(github_user="yezery", repo_name="GZXH_AUTOSYBG", current_version="V1.2.0", parent=w)
         # 检测更新
         updater.check_for_update()
     app.exec()
