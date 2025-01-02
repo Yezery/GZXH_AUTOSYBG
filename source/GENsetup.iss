@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "GEN"
-#define MyAppVersion "V 1.1.1"
+#define MyAppVersion "1.2.0"
 #define MyAppPublisher "Ziv YE"
 #define MyAppURL "https://github.com/Yezery/GZXH_AUTOSYBG"
 #define MyAppExeName "GEN.exe"
@@ -13,7 +13,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{E43F0EBB-3888-469A-9553-864121A75D29}
+AppId={{238A0FAD-88D4-4966-BEDD-708C705A3C7A}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -37,22 +37,22 @@ DisableProgramGroupPage=yes
 OutputDir=C:\Users\11720\Desktop
 OutputBaseFilename=GEN_windows
 SetupIconFile=C:\Users\11720\Desktop\AUTOSYBG\source\installer.ico
-Uninstallable=yes
-UninstallDisplayName=卸载{#MyAppName}
-UninstallDisplayIcon=C:\Users\11720\Desktop\AUTOSYBG\source\installer.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 
+; 指定卸载程序的图标
+UninstallDisplayIcon=C:\Users\11720\Desktop\AUTOSYBG\source\uninstaller.ico
+
 [Languages]
-Name: "Chinese"; MessagesFile: "C:\Program Files (x86)\Inno Setup 6\Languages\Chinese.isl"
+Name: "chinese"; MessagesFile: "compiler:Languages\Chinese.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\11720\Desktop\AUTOSYBG\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\11720\Desktop\AUTOSYBG\setup\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\11720\Desktop\AUTOSYBG\dist\GEN\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\11720\Desktop\AUTOSYBG\dist\GEN\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
