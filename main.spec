@@ -5,13 +5,13 @@ a = Analysis(
     ['app/main.py'],
     pathex=[],
     binaries=[],
-    datas=[('./source/logo.png', '.'), ('./source/config/config.json', 'config')],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
-    noarchive=True,
+    noarchive=False,
     optimize=0,
 )
 pyz = PYZ(a.pure)
@@ -19,12 +19,12 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
-    [('v', None, 'OPTION')],
+    [],
     exclude_binaries=True,
-    name='GEN',
-    debug=True,
+    name='main',
+    debug=False,
     bootloader_ignore_signals=False,
-    strip=True,
+    strip=False,
     upx=True,
     console=False,
     disable_windowed_traceback=False,
@@ -32,20 +32,19 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['source/logo.icns'],
 )
 coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
-    strip=True,
+    strip=False,
     upx=True,
     upx_exclude=[],
-    name='GEN',
+    name='main',
 )
 app = BUNDLE(
     coll,
-    name='GEN.app',
-    icon='./source/logo.icns',
+    name='main.app',
+    icon=None,
     bundle_identifier=None,
 )

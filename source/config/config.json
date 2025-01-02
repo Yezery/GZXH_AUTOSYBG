@@ -1,0 +1,24 @@
+{
+    "User": {
+        "ApiKey": "gJBWXXcfaIyQ1AXs5b6gyZPp",
+        "SecretKey": "VAOa3QhPlE3o1tybWHvKfyXiJ85rGYTl",
+        "UpdateToken": "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",
+        "UserCourse": "22数媒6",
+        "UserId": "22054181",
+        "UserName": "叶正睿"
+    },
+    "Material": {
+        "AcrylicBlurRadius": 0
+    },
+    "Update": {
+        "CheckUpdateAtStartUp": false
+    },
+    "MainWindow": {
+        "DpiScale": "Auto",
+        "Language": "zh_CN"
+    },
+    "QFluentWidgets": {
+        "ThemeColor": "#ff000000",
+        "ThemeMode": "Light"
+    }
+}
