@@ -194,7 +194,6 @@ class SettingInterface(ScrollArea):
         self.updateTokenCard = CoustomCard(FIF.VPN, self.tr("Update Token"), cfg.updateToken, "请输入Update Token", self.baseSetting)
         self.apiKeyCard.setDisabled(True)
         self.secretKeyCard.setDisabled(True)
-        self.updateTokenCard.setDisabled(True)
 
         # personalization
         self.personalGroup = SettingCardGroup(
