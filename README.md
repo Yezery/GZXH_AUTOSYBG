@@ -1,5 +1,5 @@
 ## MAC
-### pyinstaller -D -w --debug=all --clean --noconfirm --strip --add-data "./source/logo.png:." --add-data "./source/config/config.json:config"  -i ./source/logo.ico -n 'GEN' ./app/main.py
+### pyinstaller -D -w --clean --noconfirm --strip --add-data "./source/logo.png:." --add-data "./source/config/config.json:config" -i "./source/logo.icns" -n 'GEN' ./app/main.py --debug all
 
 ## MAC打包成dmg
 ### create-dmg --volname "GEN-insatller" --background "./source/bg.svg" --window-pos 400 200 --window-size 660 400 --icon-size 100  --icon "GEN.app" 160 185 --hide-extension "GEN.app" --app-drop-link 500 185  --volicon "./source/installer.icns"  dist/GEN-darwin.dmg  dist/GEN.app
