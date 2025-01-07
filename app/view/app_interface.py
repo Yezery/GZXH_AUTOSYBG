@@ -12,78 +12,44 @@ from common.config import cfg
 from qfluentwidgets import FluentIcon as FIF
 from utils.ConvertFile import ConvertFileWorker
 from view.summary_interface import SummaryInterface
-
+from docx.document import Document as DocumentObject
+from collections import OrderedDict
 class ImageInputGroup(QWidget):
     def __init__(self, image_path, parent=None):
         super().__init__(parent)
         self.parentObject = parent
-
+        self.setAcceptDrops(True)
         # 创建垂直布局
         self.layout = QVBoxLayout(self)
-        # self.adjustSize()
+        self.adjustSize()
 
         if image_path:
             # 图片标签
             self.image_label = ImageLabel(image_path)
             self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-            self.image_label.scaledToWidth(340)
-            self.image_label.setBorderRadius(8, 8, 8, 8)
+            self.image_label.scaledToWidth(350)
 
         # 文件名编辑框
         self.filename_edit = RichEdit(image_path,self)
-        if image_path:
-            self.filename_edit.textEdit.setText(os.path.basename(image_path))
+        # if image_path:
+        #     self.filename_edit.textEdit.setText(os.path.basename(image_path).split('.')[0])
         self.filename_edit.textEdit.setFixedHeight(100)  # 设置固定高度
         self.filename_edit.textEdit.setPlaceholderText("请输入描述")
 
-        # 创建按钮垂直布局
-        # button_layout = QVBoxLayout()
+        # 创建添加按钮
+        self.insert_group_button = QWidget(self)
+        self.insert_group_button_layout = QHBoxLayout(self.insert_group_button)
 
-        # if image_path:
-        #     self.view_button = PrimaryToolButton(FIF.PHOTO, self)
-            # self.view_button.setStyleSheet(
-            #     """
-            #     QPushButton {
-            #         font-size: 14px;
-            #         background-color: #4CAF50;
-            #         color: white;
-            #         border: none;
-            #         border-radius: 5px;
-            #         padding: 10px;
-            #     }
-            #     QPushButton:hover {
-            #         background-color: #45a049;
-            #     }
-            #     """
-            # )
-            
-            # self.view_button.clicked.connect(lambda: self.view_image(image_path))
-        # self.view_button.setFont(QFont("Microsoft YaHei", 12))
-        # self.view_button.setFixedWidth(50)  # 设置固定宽度
-        # self.delete_button = PrimaryToolButton(FIF.DELETE, self)
-        # self.delete_button.setStyleSheet(
-        #      """
-        #     QPushButton {
-        #         font-size: 14px;
-        #         background-color: #ff6b6b;
-        #         color: white;
-        #         border: none;
-        #         border-radius: 5px;
-        #         padding: 10px;
-        #     }
-        #     QPushButton:hover {
-        #         background-color: #ff4b4b;
-        #     }
-        #     """
-        # )
-        # self.delete_button.setFont(QFont("Microsoft YaHei", 12))
-        # self.delete_button.clicked.connect(self.delete_group)
-        # self.delete_button.setFixedWidth(50)  # 设置固定宽度
-
-        # 将按钮添加到垂直布局
-        # if image_path:
-        #     button_layout.addWidget(self.view_button)
-        # button_layout.addWidget(self.delete_button)
+        self.add_button = PrimaryPushButton(FIF.ADD,"插入图片", self)
+        self.add_button.setAcceptDrops(True)
+        self.add_text_button = PrimaryPushButton(FIF.ADD,"插入纯文字", self)
+        self.insert_group_button.setVisible(False)  # 初始时不可见
+        self.insert_group_button_layout.addWidget(self.add_button,1)
+        self.insert_group_button_layout.addWidget(self.add_text_button,1)
+        self.add_text_button.clicked.connect(lambda:self.parentObject.insert_before_key(ImageInputGroup(None,self.parentObject),None,self))
+        self.add_button.clicked.connect(self.click_upload)
+        # 将按钮添加到布局中
+        self.layout.addWidget(self.insert_group_button)
 
         # 创建水平布局，用于将按钮布局放在输入框右侧
         input_layout = QVBoxLayout()
@@ -103,6 +69,14 @@ class ImageInputGroup(QWidget):
         self.update_image_map()
         self.filename_edit.textEdit.textChanged.connect(self.update_image_map)
 
+    def click_upload(self):
+        file_dialog = QFileDialog(self)
+        file_dialog.setFileMode(QFileDialog.ExistingFiles)
+        file_dialog.setNameFilters(["Image files (*.png *.jpg)"])
+        if file_dialog.exec_():
+            file_paths = file_dialog.selectedFiles()
+            self.parentObject.insert_before_key(ImageInputGroup(file_paths[0],self.parentObject),file_paths[0],self)
+        
 
     def update_image_map(self):
         """更新输入框对象与图片路径的映射"""
@@ -133,7 +107,6 @@ class ImageInputGroup(QWidget):
         # 更新父布局
         parent.layout.update()
 
-
     def view_image(self, image_path):
         """放大查看图片"""
         image_label = ImageLabel(image_path)
@@ -146,82 +119,42 @@ class ImageInputGroup(QWidget):
         zoomed_layout.addWidget(image_label)
         zoomed_window.exec_()
 
+    def enterEvent(self, event):
+        """鼠标进入时显示按钮"""
+        self.insert_group_button.setVisible(True)
+
+    def leaveEvent(self, event):
+        """鼠标离开时隐藏按钮"""
+        self.insert_group_button.setVisible(False)
+
+    # # 拖拽事件处理
+    # def dragEnterEvent(self, event):
+    #     """处理拖拽进入"""
+    #     if event.mimeData().hasUrls():  # 确保拖拽的是文件
+    #         event.accept()
+    #     else:
+    #         event.ignore()
+
+    # def dropEvent(self, event):
+    #     """处理文件放下事件"""
+    #     if event.mimeData().hasUrls():
+    #         urls = event.mimeData().urls()  # 获取拖拽的文件路径
+    #         file_path = urls[0].toLocalFile()  # 获取第一个文件的路径
+    #         if file_path.lower().endswith(('png', 'jpg', 'jpeg')):  # 只处理图片
+    #             self.parentObject.insert_before_key(ImageInputGroup(file_path, self.parentObject), file_path, self)
+
 class DropFileUploadImages(CardWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parentObject = parent
-        self.input_image_map = {}  # 用于存储图片路径和对应的控件
+        self.input_image_map = {}
         # 设置窗口属性
         self.setAcceptDrops(True)
+        self.setBorderRadius(10)
         self.setStyleSheet("QWidget{background:transparent;border:none;}")
         # 主布局 - 使用 FlowLayout 或其他布局（根据需求）
         self.layout = FlowLayout(self, needAni=True)
         self.layout.setAnimation(250, QEasingCurve.OutQuad)
-
-        # 创建一个 QWidget 来容纳绝对布局
-        self.container_widget = CardWidget(self)
-        self.container_widget.setBorderRadius(10)
-        self.setBorderRadius(10)
-        self.container_layout = QVBoxLayout(self.container_widget)
-        self.container_layout.setContentsMargins(0, 0, 0, 0)
-        self.container_layout.setSpacing(0)
-        self.container_widget.setLayout(self.container_layout)
-
-        # 按钮组
-        self.button_group_widget = QWidget(self)
-        self.button_group_layout = QHBoxLayout(self.button_group_widget)
-
-        # 清除全部按钮
-        self.clear_button = PrimaryPushButton(FIF.DELETE,"清除全部", self)
-        self.clear_button.setFixedWidth(165)
-        self.clear_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        # self.clear_button.setStyleSheet(
-        #     """
-        #     QPushButton {
-        #         font-size: 14px;
-        #         background-color: #ff6b6b;
-        #         color: white;
-        #         border: none;
-        #         border-radius: 5px;
-        #         padding: 10px;
-        #     }
-        #     QPushButton:hover {
-        #         background-color: #ff4b4b;
-        #     }
-        #     """
-        # )
-        self.clear_button.clicked.connect(self.clear_all_image_groups)
-
-        # 添加无图描述按钮
-        self.add_no_image_button = PrimaryPushButton(FIF.ADD,"添加无图描述", self)
-        self.add_no_image_button.setFixedWidth(165)
-        self.add_no_image_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        # self.add_no_image_button.setStyleSheet(
-        #     """
-        #     QPushButton {
-        #         font-size: 14px;
-        #         background-color: #4CAF50;
-        #         color: white;
-        #         border: none;
-        #         border-radius: 5px;
-        #         padding: 10px;
-        #     }
-        #     QPushButton:hover {
-        #         background-color: #45a049;
-        #     }
-        #     """
-        # )
-        
-        # 可以连接到相应的函数，比如添加无图描述的功能
-        self.add_no_image_button.clicked.connect(self.add_no_image_description)
-
-        # 将按钮添加到按钮布局中
-        self.button_group_layout.addWidget(self.add_no_image_button)
-        self.button_group_layout.addWidget(self.clear_button)
-       
-
-        # 将按钮组添加到容器中
-        self.layout.addWidget(self.button_group_widget)
 
         # 标签提示
         self.label = BodyLabel("拖拽文件 或 点击选择图片文件", self)
@@ -243,15 +176,12 @@ class DropFileUploadImages(CardWidget):
             }
             """
         )
-        # 将标签添加到容器布局中
-        self.container_layout.addWidget(self.label)
         self.visible()
 
     def resizeEvent(self, event):
         """确保容器控件和子控件随父控件大小变化而更新位置和大小"""
         super().resizeEvent(event)
         # 重新定位按钮组和标签
-        self.container_widget.setGeometry(0, 0, self.width(), self.height())  # 标签下面部分
         self.label.setGeometry(0, 0, self.width(), self.height())  # 标签填满容器
 
     def dragEnterEvent(self, event):
@@ -259,6 +189,17 @@ class DropFileUploadImages(CardWidget):
         if event.mimeData().hasUrls():
             event.accept()
             self.label.setText("释放文件到此区域")
+            
+            # 获取当前拖动位置
+            drag_position = event.pos()
+            
+            # 遍历布局中的控件，检查是否鼠标进入了某个 ImageInputGroup
+            for child in self.children():
+                if isinstance(child, ImageInputGroup):
+                    if child.rect().contains(child.mapFromParent(drag_position)):
+                        # 触发该控件的 enterEvent
+                        child.enterEvent(event)
+                        break
         else:
             event.ignore()
 
@@ -289,11 +230,11 @@ class DropFileUploadImages(CardWidget):
 
     def visible(self):
         if  self.input_image_map == {}:
-            self.clear_button.setVisible(False)
+            self.parentObject.tools_button_group.clear_button.setVisible(False)
             self.layout.update()
             self.label.setVisible(True)
         else:
-            self.clear_button.setVisible(True)
+            self.parentObject.tools_button_group.clear_button.setVisible(True)
             self.layout.update()
             self.label.setVisible(False)
 
@@ -324,6 +265,69 @@ class DropFileUploadImages(CardWidget):
             self.label.setVisible(True)
         else:
             self.label.setVisible(False)
+
+    def insert_before_key(self,new_key, new_value, target_key):
+        # 将普通字典临时转换为 OrderedDict
+        ordered_map = OrderedDict(self.input_image_map)
+
+        # 获取所有键的顺序
+        keys = list(ordered_map.keys())
+        
+        # 确保目标键存在
+        if target_key not in ordered_map:
+            raise KeyError(f"Key '{target_key}' not found in the dictionary.")
+        
+        # 获取目标键的位置
+        index = keys.index(target_key)
+        
+        # 使用 move_to_end() 来插入新元素
+        for key in keys[:index]:
+            ordered_map.move_to_end(key)  # 将目标键前的所有键移到末尾
+
+        ordered_map[new_key] = new_value  # 插入新的键值对
+        ordered_map.move_to_end(new_key, last=False)  # 确保新插入的键在目标键前
+
+        # 打印修改后的 OrderedDict
+        print(ordered_map)
+
+        # 将 OrderedDict 转换回普通字典并赋值给 self.input_image_map
+        self.input_image_map = dict(ordered_map)
+        # 找到目标控件在布局中的索引位置
+        target_widget = self.layout.itemAt(index)  # 获取目标键的当前布局项
+        if target_widget:
+            target_index = self.layout.indexOf(target_widget)
+            # 使用 insertWidget 来插入到指定位置
+            self.layout.insertWidget(target_index, new_key)
+        else:
+            # 如果目标控件未找到，直接将新的控件添加到末尾
+            self.layout.addWidget(new_key)
+        self.visible()
+class ToolsButtonGroup(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.parentObject = parent
+       # 按钮组
+        self.button_group_widget = QWidget(self)
+        self.button_group_layout = QHBoxLayout(self.button_group_widget)
+        self.button_group_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.button_group_layout.setContentsMargins(0, 0, 0, 0)
+        # 清除全部按钮
+        self.clear_button = PrimaryPushButton(FIF.DELETE,"清除全部", self)
+        self.clear_button.setFixedWidth(165)
+        self.clear_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+       
+
+        # 添加无图描述按钮
+        self.add_no_image_button = PrimaryPushButton(FIF.ADD,"添加无图描述", self)
+        self.add_no_image_button.setFixedWidth(165)
+        self.add_no_image_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+       
+
+        # 将按钮添加到按钮布局中
+        self.button_group_layout.addWidget(self.add_no_image_button)
+        self.button_group_layout.addWidget(self.clear_button)
+        self.layout = QHBoxLayout(self)
+        self.layout.addWidget(self.button_group_widget)
 
 class FileButtonGroup(QWidget):
     def __init__(self, file_name,file,file_type ,parent=None):
@@ -386,10 +390,6 @@ class FileButtonGroup(QWidget):
                         output_pdf.write(self.file.getvalue())
             createMessage(parent.right_scroll_area,"成功", "保存成功",1)
 
-        
-
-        
-
     def delete_button_group(self):
         """删除按钮组"""
         parent = self.parent()
@@ -418,7 +418,6 @@ class ResultFile(QWidget):
         self.setLayout(self.flowlayout)
         self.resize(300, 400)
         self.setStyleSheet('QPushButton{padding: 5px 10px; font: 15px "Microsoft YaHei"}')
-    
 
     def remove_result_file(self, file_button_group):
         """根据按钮组移除文件"""
@@ -500,14 +499,15 @@ class ProcessTask(CardWidget):
         self.insert_learning()
      # 插入实验过程
     def insert_paragraphs(self, images, texts):
-
+        """插入实验过程"""
+        pic_num = 1
         for i, (image, text) in enumerate(zip(images, texts)):
             if text != "无文字说明":
                 # 遍历 QTextDocument 的块（段落）
                 block = text.firstBlock()
                 while block.isValid():
                     text_paragraph = self.doc.add_paragraph()  # 添加段落
-                                        # # 设置段落对齐方式
+                    # 设置段落对齐方式
                     block_format = block.blockFormat()
                     alignment = block_format.alignment()
                     if alignment == Qt.AlignLeft:
@@ -529,7 +529,8 @@ class ProcessTask(CardWidget):
 
                             # 添加到 Word 段落的 Run
                             run = text_paragraph.add_run(text)
-
+                            if image:
+                                text_paragraph.add_run(f"，如图 {pic_num}所示")
                             # 应用样式
                             if char_format.fontWeight() == QFont.Bold:
                                 run.bold = True
@@ -541,39 +542,32 @@ class ProcessTask(CardWidget):
                             if font_size > 0:
                                 run.font.size = font_size
                             # 在图片上方插入文字
-
-                            # text_paragraph = self.doc.add_paragraph()  # 使用文档对象添加文字段落
-                            # text_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT  # 水平居左
-
-                            # 设置文字样式为三号字（16磅），并缩进两个TAB
-                            run.font.size = Pt(13)  # 三号字（16磅）
-
-                            # 设置段落的左缩进为两个TAB（大约1.5厘米，您可以根据需要调整）
-                            text_paragraph.paragraph_format.left_indent = Pt(
-                                50
-                            )  # 约相当于两个TAB的宽度
-
+                            text_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT  # 水平居左
                             # 设置段落间距为 1.5 倍行距
                             text_paragraph.paragraph_format.line_spacing = Pt(
                                 24
                             )  # 1.5倍行距（16磅*1.5=24磅）
-
+                            run.font.size = Pt(10.5)  # 5号字（10.5磅）
+                            run.font.name = "宋体"  # 设置字体为宋体
+                            spacing_paragraph = self.doc.add_paragraph()  # 使用文档对象添加间隙段落
+                            spacing_paragraph.paragraph_format.space_after = Pt(
+                                1)
                         it += 1  # 进入下一个 fragment
-
                     block = block.next()  # 移动到下一个块
-
+                    
             if image:
                 # 插入图片
                 image_paragraph = self.doc.add_paragraph()  # 使用文档对象添加新段落
-                image_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  # 设置图片居中
-                run = image_paragraph.add_run()
-                run.add_picture(image, width=Inches(6))  # 图片宽度为 6 英寸
-                # 插入图片和文字之间的间隙
-                spacing_paragraph = self.doc.add_paragraph()  # 使用文档对象添加间隙段落
-                spacing_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                spacing_paragraph.paragraph_format.space_after = Pt(
-                    12
-                )  # 设置段落后间距
+                image_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                image_paragraph.add_run().add_picture(image, width=Inches(5))  # 调整宽度
+                # 添加图片题注（段落）
+                caption_paragraph = self.doc.add_paragraph(f"图 {pic_num}")
+                caption_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # spacing_paragraph = self.doc.add_paragraph()  # 使用文档对象添加间隙段落
+                # spacing_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # spacing_paragraph.paragraph_format.space_after = Pt(
+                #     12)
+                pic_num += 1
     def get_app_path(self):
         """
         获取应用程序运行目录：
@@ -715,64 +709,74 @@ class AppInterface(QWidget):
     def __init__(self, text: str, parent=None):
         super().__init__(parent=parent)
         self.setObjectName(text.replace(' ', '-'))
-        # self.setScrollAnimation(Qt.Vertical, 400, QEasingCurve.OutQuint)
-        # self.setScrollAnimation(Qt.Horizontal, 400, QEasingCurve.OutQuint)
-        # self.horizontalScrollBar().setValue(1900)
-        # self.setStyleSheet("SmoothScrollArea{border: none;}")
-        # 创建主布局
-        main_layout = QHBoxLayout(self)
-
-        
-        # 在左侧滚动区域中放置一个 QWidget 作为容器
-        left_widget = QWidget(self)
-        left_layout = QVBoxLayout(left_widget)
-        
-        left_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        left_widget.setStyleSheet("background:transparent;border:none;")
-        left_layout.setAlignment(Qt.AlignTop)
-        left_layout.setContentsMargins(0,0, 0, 0)
-
-        # 初始添加 widgets
-        self.summary_widget = SummaryInterface("app summary interface", self)
-        self.summary_widget.setBorderRadius(10)
-        self.summary_widget.setFixedHeight(250)
-        left_layout.addWidget(self.summary_widget)
-
-        self.process_task = ProcessTask("app process task", self)
-        left_layout.addWidget(self.process_task)
-
-        # 创建滚动区域用于显示 ResultFile
-        result_scroll_area = SmoothScrollArea(self)  # 为 ResultFile 创建一个 QScrollArea
-        result_scroll_area.setAutoFillBackground(True)
-        result_scroll_area.enableTransparentBackground()
-        result_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        result_scroll_area.setViewportMargins(0, 0, 0, 0)
-        result_scroll_area.setWidgetResizable(True)
-
-        self.result_file = ResultFile(self)  # 创建 ResultFile 实例
-        self.result_file.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        result_scroll_area.setWidget(self.result_file)  # 将 ResultFile 添加到滚动区域
-
-        left_layout.addWidget(result_scroll_area)  # 将滚动区域添加到左侧布局
-
-        # 创建右侧滚动区域，放入 DropFileUploadImages
-        self.right_scroll_area = SmoothScrollArea(self)
-        
-        self.right_scroll_area.enableTransparentBackground()
-        self.right_scroll_area.setWidgetResizable(True)
-        self.drop_upload = DropFileUploadImages(self)
-        self.right_scroll_area.setWidget(self.drop_upload)
-
-        # 将左侧和右侧区域添加到主布局
-        main_layout.addWidget(left_widget, 1)  # 让左边区域可以滚动
-        main_layout.addWidget(self.right_scroll_area, 1)
-
-        self.setLayout(main_layout)
+        self.__initWidget()
+        self.__initLayout()
         self.summary_widget.isUpload.connect(self.set_upload)
         self.summary_widget.docx_emit.connect(self.set_doc)
 
+    def __initWidget(self):
+        # 创建主布局
+        self.main_layout = QHBoxLayout(self)        
+        # 在左侧滚动区域中放置一个 QWidget 作为容器
+        self.left_widget = QWidget(self)
+        self.left_layout = QVBoxLayout(self.left_widget)
+        self.summary_widget = SummaryInterface("app summary interface", self)
+        self.process_task = ProcessTask("app process task", self)
+        self.left_result_file_scroll_area = SmoothScrollArea(self)
+        self.result_file = ResultFile(self) 
 
-    from docx.document import Document as DocumentObject
+        self.left_layout.addWidget(self.summary_widget)
+        self.left_layout.addWidget(self.process_task)
+        self.left_layout.addWidget(self.left_result_file_scroll_area)
+        self.left_result_file_scroll_area.setWidget(self.result_file)
+
+        # 创建右侧滚动区域
+        self.tools_button_group = ToolsButtonGroup(self)
+        self.drop_upload = DropFileUploadImages(self)
+        self.right_widget = QWidget(self)
+        self.right_widget.setContentsMargins(0,0, 0, 0)
+        self.right_layout = QVBoxLayout(self.right_widget)        
+
+        self.right_scroll_area = SmoothScrollArea(self)
+
+        self.right_layout.addWidget(self.right_scroll_area)
+        self.right_layout.addWidget(self.tools_button_group)
+        self.right_scroll_area.setWidget(self.drop_upload)
+        
+        # 将左侧和右侧区域添加到主布局
+        self.main_layout.addWidget(self.left_widget,1) 
+        self.main_layout.addWidget(self.right_widget,1)
+
+    def __initLayout(self):
+
+        self.left_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.left_widget.setStyleSheet("background:transparent;border:none;")
+        self.left_layout.setAlignment(Qt.AlignTop)
+        self.left_layout.setContentsMargins(0,0, 0, 0)
+
+        self.right_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.right_widget.setStyleSheet("background:transparent;border:none;")
+        self.right_layout.setAlignment(Qt.AlignTop)
+        self.right_layout.setContentsMargins(0,0, 0, 0)
+        
+        self.summary_widget.setBorderRadius(10)
+        self.summary_widget.setFixedHeight(250)
+
+        self.left_result_file_scroll_area.setAutoFillBackground(True)
+        self.left_result_file_scroll_area.enableTransparentBackground()
+        self.left_result_file_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.left_result_file_scroll_area.setViewportMargins(0, 0, 0, 0)
+        self.left_result_file_scroll_area.setWidgetResizable(True)
+
+        self.right_scroll_area.enableTransparentBackground()
+        self.right_scroll_area.setWidgetResizable(True)
+
+        self.result_file.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.tools_button_group.clear_button.clicked.connect(self.drop_upload.clear_all_image_groups)
+        self.tools_button_group.add_no_image_button.clicked.connect(self.drop_upload.add_no_image_description)
+        
+
     @pyqtSlot(DocumentObject)
     def set_doc(self,docx):
         self.process_task.doc = docx

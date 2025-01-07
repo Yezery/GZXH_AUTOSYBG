@@ -373,6 +373,11 @@ class SettingInterface(ScrollArea):
         self.themeColorCard.colorChanged.connect(lambda c: setThemeColor(c))
         # self.micaCard.checkedChanged.connect(signalBus.micaEnableChanged)
 
-        # about
+        # feedback
         self.feedbackCard.clicked.connect(
             lambda: QDesktopServices.openUrl(QUrl(FEEDBACK_URL)))
+        
+        # # about
+        # self.aboutCard.clicked.connect(
+            
+        # )

@@ -25,3 +25,9 @@ cp logo.png icon_512x512@2x.png
 iconutil -c icns logo.iconset   
 -->
 
+Makecert -sv gen.pvk -r -n “CN=ZivYE” gen.cer
+Cert2spc gen.cer gen.spc
+pvk2pfx -pvk gen.pvk -pi '123456789' -spc gen.spc -pfx gen.pfx -f
+signtool sign /f gen.pfx /p 123456789 /fd SHA256 C:\Users\11720\Desktop\GEN\GEN.exe
+signtool timestamp /tr http://timestamp.digicert.com /td SHA256 C:\Users\11720\Desktop\GEN\GEN.exe
+

@@ -3,15 +3,15 @@
         "ApiKey": "gJBWXXcfaIyQ1AXs5b6gyZPp",
         "SecretKey": "VAOa3QhPlE3o1tybWHvKfyXiJ85rGYTl",
         "UpdateToken": "",
-        "UserCourse": "",
-        "UserId": "",
-        "UserName": ""
+        "UserCourse": "22数媒6",
+        "UserId": "22054181",
+        "UserName": "叶正睿"
     },
     "Material": {
         "AcrylicBlurRadius": 0
     },
     "Update": {
-        "CheckUpdateAtStartUp": true
+        "CheckUpdateAtStartUp": false
     },
     "MainWindow": {
         "DpiScale": "Auto",
