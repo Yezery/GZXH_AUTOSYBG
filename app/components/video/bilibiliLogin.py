@@ -35,7 +35,7 @@ class BilibiliQCodeMessageBox(MessageBoxBase):
         self.yesButton.hide()
         self.refreshButton = PushButton(self.tr('刷新'))
         self.cancelButton.setText(self.tr('取消'))
-        self.buttonLayout.addWidget(self.refreshButton, 1, Qt.AlignVCenter)
+        self.buttonLayout.addWidget(self.refreshButton, 1)
         self.widget.setMinimumWidth(360)
         
         # self.yesButton.setDisabled(True)
@@ -184,7 +184,7 @@ class BilibiliLogin(QWidget):
             buffer = BytesIO()
             img.save(buffer, format="PNG")
             qimage = QImage.fromData(buffer.getvalue())
-            pixmap = QPixmap.fromImage(qimage.scaled(230, 230, Qt.KeepAspectRatio))
+            pixmap = QPixmap.fromImage(qimage.scaled(230, 230, Qt.AspectRatioMode.KeepAspectRatio))
             self.label_image.setPixmap(pixmap)
             self.label_image.setContentsMargins(40,40,40,40)
 
@@ -215,7 +215,7 @@ class BilibiliLogin(QWidget):
     def show_user_avatar(self, face_url):
         try:
             image_bytes = requests.get(face_url).content
-            pixmap = QPixmap.fromImage(QImage.fromData(image_bytes).scaled(39, 39, Qt.KeepAspectRatio))
+            pixmap = QPixmap.fromImage(QImage.fromData(image_bytes).scaled(39, 39, Qt.AspectRatioMode.KeepAspectRatio))
             self.avatar_btn.setPixmap(pixmap)
         except Exception as e:
             print(f"Error displaying avatar: {e}")
@@ -227,7 +227,7 @@ class BilibiliLogin(QWidget):
         if w.exec():
             url = 'https://passport.bilibili.com/login/exit/v2'
             data = {'biliCSRF': self.extract_sessdata(self.temp_cookie)}
-            self.session.positiont(url, headers=self.headers, data=data)
+            self.session.post(url, headers=self.headers, data=data)
             with open(self.temp_cookie, 'w', encoding='utf-8') as file:
                 file.write('# Netscape HTTP Cookie File\n')
             self.update_ui(show_logout=False, show_login=True)

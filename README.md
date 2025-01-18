@@ -5,7 +5,7 @@
 ### create-dmg --volname "GEN-installer" --background "./packResource/bg.svg" --window-pos 400 200 --window-size 660 400 --icon-size 100 --icon "GEN.app" 160 185 --hide-extension "GEN.app" --app-drop-link 500 185 --volicon "packResource/installer.icns" dist/GEN-darwin.dmg dist/GEN.app
 
 ## Windows
-### pyinstaller -D -w --clean --noconfirm --add-data ".\\source\\logo.png;." --add-data ".\\source\\config\\config.json;config" -i ".\\source\\logo.ico" -n GEN .\app\main.py
+### pyinstaller -D -w --clean --noconfirm --add-data ".\\app\\resource\\;."  -i ".\\packResource\\logo.ico" -n GEN .\app\main.py
 
 ## Windows打包成安装包
 ### 使用 Inno Setup 见 GENsetupiss.iss

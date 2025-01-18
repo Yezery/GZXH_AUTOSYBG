@@ -2,9 +2,9 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "GEN"
-#define MyAppVersion "1.2.0"
+#define MyAppVersion "1.3.2"
 #define MyAppPublisher "Ziv YE"
-#define MyAppURL "https://github.com/Yezery/GZXH_AUTOSYBG"
+#define MyAppURL "https://github.com/Yezery"
 #define MyAppExeName "GEN.exe"
 #define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".myp"
@@ -36,13 +36,13 @@ DisableProgramGroupPage=yes
 ;PrivilegesRequired=lowest
 OutputDir=C:\Users\11720\Desktop
 OutputBaseFilename=GEN_windows
-SetupIconFile=C:\Users\11720\Desktop\AUTOSYBG\source\installer.ico
+SetupIconFile=C:\Users\11720\Desktop\GZXH_AUTOSYBG\packResource\installer.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 
 ; 指定卸载程序的图标
-UninstallDisplayIcon=C:\Users\11720\Desktop\AUTOSYBG\source\uninstaller.ico
+UninstallDisplayIcon=C:\Users\11720\Desktop\GZXH_AUTOSYBG\packResource\uninstaller.ico
 
 [Languages]
 Name: "chinese"; MessagesFile: "compiler:Languages\Chinese.isl"
@@ -51,8 +51,8 @@ Name: "chinese"; MessagesFile: "compiler:Languages\Chinese.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\11720\Desktop\AUTOSYBG\dist\GEN\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\11720\Desktop\AUTOSYBG\dist\GEN\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\11720\Desktop\GZXH_AUTOSYBG\dist\GEN\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\11720\Desktop\GZXH_AUTOSYBG\dist\GEN\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

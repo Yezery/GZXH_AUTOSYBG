@@ -2,18 +2,14 @@ import os
 import re
 from PyQt6.QtCore import Qt,QPoint,QEasingCurve,QUrl
 from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout,QWidget,QFileDialog,QTableWidgetItem,QTableWidget
-from qfluentwidgets import SmoothScrollArea,LineEdit,PrimaryPushButton,CaptionLabel,InfoBar,InfoBarPosition,FluentIcon,PushButton,TableWidget,BodyLabel,SwitchButton,StateToolTip,FlowLayout,MaskDialogBase,ImageLabel,CommandBarView,Flyout,Action,FlyoutAnimationType,MessageBox,CardWidget
+from qfluentwidgets import SmoothScrollArea,LineEdit,PrimaryPushButton,CaptionLabel,InfoBar,InfoBarPosition,FluentIcon,PushButton,TableWidget,BodyLabel,SwitchButton,StateToolTip,FlowLayout,MaskDialogBase,Action,MessageBox,CardWidget,RoundMenu,MenuAnimationType
 from qfluentwidgets.multimedia import VideoWidget
 from qfluentwidgets import FluentIcon as FIF
-from PyQt6.QtGui import QPixmap,QImage
 from PyQt6.QtWidgets import QVBoxLayout,QHBoxLayout,QSizePolicy
 from common.config import cfg
-import cv2
 from view.router_interface import RouterInterface
 from components.video.bilibiliLogin import BilibiliLogin
 from components.video.videoDownloader import get_downloader
-
-from PyQt6.QtWidgets import QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 
 class MoreTableFrame(TableWidget):
 
@@ -32,12 +28,13 @@ class MoreTableFrame(TableWidget):
             self.tr(""),self.tr('文件大小'), self.tr('文件格式'),self.tr('分辨率'), self.tr('选择下载')
         ])
         # 初始数据
-        self.songInfos = [[]
+        self.datas = [[]
         ]
 
         # 设置布局
         layout = QVBoxLayout(self)
         layout.addWidget(self)
+        self.horizontalHeader().setStretchLastSection(True)
         
 
     def update_table_data(self, data):
@@ -63,8 +60,6 @@ class MoreTableFrame(TableWidget):
             # 将行号传递给按钮点击事件
             download_button.clicked.connect(self.on_download_button_clicked)
             self.setCellWidget(i, 4, download_button_row)  
-        self.resizeColumnsToContents()  # 自动调整列宽
-        self.horizontalHeader().setStretchLastSection(True)  # 确保最后一列填充剩余空间
         
     def on_download_button_clicked(self):
         # 获取点击按钮所在行的索引
@@ -102,15 +97,15 @@ class BestTableFrame(TableWidget):
             self.tr(""),self.tr('文件大小'), self.tr('分辨率'),self.tr('文件格式'),self.tr('描述'), self.tr('选择下载')
         ])
         # 初始数据
-        self.songInfos = [[]
+        self.datas = [[]
         ]
 
         # 设置布局
         layout = QVBoxLayout(self)
         layout.addWidget(self)
-        # 自适应列宽
-        self.resizeColumnsToContents()
         self.horizontalHeader().setStretchLastSection(True)
+
+        
     def update_table_data(self, data):
         """
         动态更新表格内容。
@@ -136,9 +131,6 @@ class BestTableFrame(TableWidget):
             download_button.clicked.connect(self.on_download_button_clicked)
             self.setCellWidget(i, 5, download_button_row) 
 
-        # 自适应列宽
-        self.resizeColumnsToContents()
-        self.horizontalHeader().setStretchLastSection(True)
 
 
     def on_download_button_clicked(self):
@@ -200,55 +192,29 @@ class VideoMessageBox(MaskDialogBase):
             videoWidgetY = (self.height() - self.videoWidget.height()) // 2
             self.videoWidget.move(videoWidgetX, videoWidgetY)
         
-class VideoReusltItem(ImageLabel):
+class VideoReusltItem(CardWidget):
     def __init__(self, parent,fileName):
         super().__init__(parent)
         self.fileName = fileName
-        self.setBorderRadius(6,6,6,6)
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setBorderRadius(6)
+        # self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.clicked.connect(self.createCommandBarFlyout)
-       # 获取视频封面并设置为图片
-        thumbnail = self.get_video_thumbnail(f"{cfg.get(cfg.downloadFolder)}/{fileName}")
-        if thumbnail:
-            self.setPixmap(thumbnail)
+        self.setLayout(QVBoxLayout())
+        self.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
+        name_parts = fileName.split('.')  # 分割文件名和扩展名
+        base_name = name_parts[0]  # 获取文件名部分（去掉扩展名）
+        self.layout().addWidget(BodyLabel(base_name, self))
 
-    def get_video_thumbnail(self, video_path):
-        """ 提取视频第一帧并转换为 QPixmap """
-        cap = cv2.VideoCapture(video_path)
-        ret, frame = cap.read()
-        cap.release()
-
-        if ret:
-            # 将 BGR 转换为 RGB
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
-            # 固定大小
-            fixed_width = 170  # 固定宽度
-            fixed_height = 110  # 固定高度
-            frame_resized = cv2.resize(frame_rgb, (fixed_width, fixed_height))  # 缩放到固定大小
-
-            # 转换为 QImage
-            height, width, channel = frame_resized.shape
-            image = QImage(frame_resized.data, width, height, 3 * width, QImage.Format.Format_RGB888)
-            # 转换为 QPixmap
-            pixmap = QPixmap.fromImage(image)
-            return pixmap
-        return None
     def showVideoDialog(self):
         w = VideoMessageBox(self.window(),self.fileName)
         w.exec()
     def createCommandBarFlyout(self):
-        """弹出操作工具条（保存和删除）"""
-        view = CommandBarView(self)
-
-        # 创建动作
-        view.addAction(Action(FIF.VIEW, self.tr('查看视频'), triggered=self.showVideoDialog))
-        view.addAction(Action(FIF.DELETE, self.tr('查看视频'), triggered=self.deleteVideo))
-        view.resizeToSuitableWidth()
-
+        menu = RoundMenu(parent=self)
+        menu.addAction(Action(FIF.VIEW, self.tr('查看视频'), triggered=self.showVideoDialog))
+        menu.addAction(Action(FIF.DELETE, self.tr('删除视频'), triggered=self.deleteVideo))
         x = self.width()  # 获取当前组件的宽度
         pos = self.mapToGlobal(QPoint(x-60, -30))
-        Flyout.make(view, pos, self, FlyoutAnimationType.FADE_IN)
+        menu.exec(pos, aniType=MenuAnimationType.DROP_DOWN)
 
     def deleteVideo(self):
         """ 删除视频文件 """
@@ -337,13 +303,8 @@ class VideoInterface(RouterInterface):
         self.video_btn.setDisabled(True)
 
         # 创建右侧区域
-        # self.right_widget = CardWidget(self)
         self.videoResultWidget = VideoResultWidget(self)
         
-        # self.right_layout = QVBoxLayout(self.right_widget)
-        # self.right_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        # self.right_layout.addWidget(self.bilibiliLogin)
         self.savePath = CaptionLabel(f"{cfg.get(cfg.downloadFolder)}", self)
         self.saveBtn = PushButton("选择保存路径", self)
         

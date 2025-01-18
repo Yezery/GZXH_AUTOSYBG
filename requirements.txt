@@ -1,8 +1,7 @@
 pillow
 python-docx
 requests
-# PyQt-Fluent-Widgets
 pyinstaller
 qrcode
-opencv-python
 yt_dlp
+PyQt6-Fluent-Widgets

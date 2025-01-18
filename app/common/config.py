@@ -12,7 +12,7 @@ from qfluentwidgets import (qconfig, QConfig, ConfigItem, OptionsConfigItem, Boo
 
 YEAR = 2025
 AUTHOR = "ZivYE"
-VERSION = "V 1.3.0"
+VERSION = "V 1.3.2"
 HELP_URL = "https://github.com/yezery/GZXH_AUTOSYBG"
 # REPO_URL = "https://github.com/zhiyiYo/PyQt-Fluent-Widgets"
 FEEDBACK_URL = "https://github.com/yezery/GZXH_AUTOSYBG/issues"
