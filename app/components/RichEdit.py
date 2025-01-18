@@ -17,12 +17,11 @@ class RichEdit(QWidget):
         # 创建 TextEdit（富文本编辑器）
         self.textEdit = TextEdit(self)
 
-        # 创建工具栏
-        self.create_toolbar(image_path)
-
-
         # 添加控件到布局
         self.layout.addWidget(self.textEdit)
+
+         # 创建工具栏
+        self.create_toolbar(image_path)
 
         # 连接 QTextEdit 的选择变化信号
         # self.textEdit.selectionChanged.connect(self.update_font_size_combo)
@@ -91,7 +90,7 @@ class RichEdit(QWidget):
     def set_bold(self):
         """设置选中文字为加粗"""
         fmt = self.textEdit.currentCharFormat()
-        fmt.setFontWeight(QFont.Bold if fmt.fontWeight() != QFont.Bold else QFont.Normal)
+        fmt.setFontWeight(QFont.Weight.Bold if fmt.fontWeight() != QFont.Weight.Bold else QFont.Weight.Normal)
         self.textEdit.mergeCurrentCharFormat(fmt)
 
     def set_italic(self):
@@ -110,7 +109,7 @@ class RichEdit(QWidget):
         """插入分点列表"""
         cursor = self.textEdit.textCursor()
         list_format = QTextListFormat()
-        list_format.setStyle(QTextListFormat.ListDisc)
+        list_format.setStyle(QTextListFormat.Style.ListDisc)
         cursor.createList(list_format)
 
     def change_font_size(self, size):
@@ -169,7 +168,7 @@ class RichEdit(QWidget):
             alignment = block_format.alignment()
             if alignment == Qt.AlignmentFlag.AlignLeft:
                 paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            elif alignment in (Qt.AlignHCenter, Qt.AlignmentFlag.AlignCenter):
+            elif alignment in (Qt.AlignmentFlag.AlignCenter, Qt.AlignmentFlag.AlignCenter):
                 paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             elif alignment == Qt.AlignmentFlag.AlignRight:
                 paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
@@ -188,7 +187,7 @@ class RichEdit(QWidget):
                     run = paragraph.add_run(text)
 
                     # 应用样式
-                    if char_format.fontWeight() == QFont.Bold:
+                    if char_format.fontWeight() == QFont.Weight.Bold:
                         run.bold = True
                     if char_format.fontItalic():
                         run.italic = True

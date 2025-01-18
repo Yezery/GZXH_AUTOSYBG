@@ -28,9 +28,9 @@ class SampleCard(CardWidget):
         self.hBoxLayout.setContentsMargins(20, 0, 0, 0)
         self.vBoxLayout.setSpacing(2)
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
-        self.vBoxLayout.setAlignment(Qt.AlignVCenter)
+        self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.hBoxLayout.setAlignment(Qt.AlignVCenter)
+        self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.hBoxLayout.addWidget(self.iconWidget)
         self.hBoxLayout.addLayout(self.vBoxLayout)
         self.vBoxLayout.addStretch(1)

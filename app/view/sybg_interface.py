@@ -126,13 +126,11 @@ class ImageInputGroup(QWidget):
     def enterEvent(self, event):
         """鼠标进入时显示按钮"""
         self.insert_group_button.setVisible(True)
-        self.image_script_linetext.textEdit.setFixedHeight(150)
         self.image_script_linetext.toolbar.show()
 
     def leaveEvent(self, event):
         """鼠标离开时隐藏按钮"""
         self.insert_group_button.setVisible(False)
-        self.image_script_linetext.textEdit.setFixedHeight(50)
         self.image_script_linetext.toolbar.hide()
 
 class DropFileUploadImages(CardWidget):
@@ -538,7 +536,7 @@ class ProcessTask(CardWidget):
                     alignment = block_format.alignment()
                     if alignment == Qt.AlignmentFlag.AlignLeft:
                         text_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
-                    elif alignment in (Qt.AlignHCenter, Qt.AlignmentFlag.AlignCenter):
+                    elif alignment in (Qt.AlignmentFlag.AlignCenter, Qt.AlignmentFlag.AlignCenter):
                         text_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                     elif alignment == Qt.AlignmentFlag.AlignRight:
                         text_paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
@@ -562,7 +560,7 @@ class ProcessTask(CardWidget):
                                 else:
                                     text_paragraph.add_run(f"，如图 {pic_num}所示")
                             # 应用样式
-                            if char_format.fontWeight() == QFont.Bold:
+                            if char_format.fontWeight() == QFont.Weight.Bold:
                                 run.bold = True
                             if char_format.fontItalic():
                                 run.italic = True

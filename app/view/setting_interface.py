@@ -94,7 +94,7 @@ from qfluentwidgets import FluentIcon as FIF
 #         self.bottomLayout.addStretch(1)
 #         self.bottomLayout.addWidget(self.refreshButton, 0, Qt.AlignmentFlag.AlignRight)
 #         self.bottomLayout.addWidget(self.compileButton, 0, Qt.AlignmentFlag.AlignRight)
-#         self.bottomLayout.setAlignment(Qt.AlignVCenter)
+#         self.bottomLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 #         self.setContentsMargins(16, 16, 16, 16)
 #         self.bottomLayout.addWidget(self.download)
 #         # 添加组件到分组中
