@@ -1,6 +1,7 @@
 import os
 import platform
 import re
+import subprocess
 from PyQt6.QtCore import Qt,QPoint,QEasingCurve,QUrl
 from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout,QWidget,QFileDialog,QTableWidgetItem,QTableWidget
 from qfluentwidgets import SmoothScrollArea,LineEdit,PrimaryPushButton,CaptionLabel,InfoBar,InfoBarPosition,FluentIcon,PushButton,TableWidget,BodyLabel,SwitchButton,StateToolTip,FlowLayout,MaskDialogBase,Action,MessageBox,CardWidget,RoundMenu,MenuAnimationType
@@ -214,27 +215,22 @@ class VideoReusltItem(CardWidget):
     def showFileLocation(self):
         # 构造文件路径
         file_path = f"{cfg.get(cfg.downloadFolder)}/{self.fileName}"
-
         try:
             if platform.system() == "Windows":
-                # Windows: 使用 explorer 打开文件并选中
-                os.startfile(f'/select,"{file_path}"')
-
+                # Windows 下的命令需要 '/select,' 格式
+                subprocess.run(f'explorer /select,"{os.path.abspath(file_path)}"', shell=True)
             elif platform.system() == "Darwin":
-                # macOS: 使用 open 命令并选中文件
-                os.system(f'open -R "{file_path}"')
-
-            elif platform.system() == "Linux":
-                # Linux: 使用 file manager (例如 nautilus) 打开文件并选中
+                # macOS
+                # 使用 macOS 的 open 命令
+                subprocess.run(["open", "-R", file_path])
+            else: 
+                # Linux
+                # 使用 Linux 的文件管理器打开文件夹
                 folder_path = os.path.dirname(file_path)
-                os.system(f'xdg-open "{folder_path}"')
-            else:
-                # 其他系统：作为回退，直接打开文件夹
-                folder_path = os.path.dirname(file_path)
-                QDesktopServices.openUrl(QUrl.fromLocalFile(folder_path))
-
+                subprocess.run(["xdg-open", folder_path])
         except Exception as e:
             print(f"无法打开文件所在位置: {e}")
+
 
     def showVideoBySystem(self):
         # 构造文件夹路径
@@ -294,12 +290,18 @@ class VideoResultWidget(QWidget):
             self.flowLayout.addWidget(item)
             
     def get_video_files(self, folder_path):
-        """ 获取指定文件夹下的所有视频文件 """
+        """ 获取指定文件夹（第一层）下的所有视频文件 """
         video_files = []
-        for root, dirs, files in os.walk(folder_path):
-            for file in files:
-                if file.endswith(('.mp4', '.avi', '.mkv')):  # 可根据需要添加更多视频格式
+        try:
+            # 列出文件夹中的所有文件和子文件夹
+            for file in os.listdir(folder_path):
+                # 构造完整路径
+                file_path = os.path.join(folder_path, file)
+                # 检查是否为文件且扩展名符合要求
+                if os.path.isfile(file_path) and file.lower().endswith('.mp4'):
                     video_files.append(file)
+        except Exception as e:
+            print(f"读取文件夹失败: {e}")
         return video_files
     
 
