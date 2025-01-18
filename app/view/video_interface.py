@@ -1,0 +1,448 @@
+import os
+import re
+from PyQt5.QtCore import Qt,QPoint,QEasingCurve,QUrl
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout,QWidget,QFileDialog,QTableWidgetItem,QTableWidget
+from qfluentwidgets import SmoothScrollArea,LineEdit,PrimaryPushButton,CaptionLabel,InfoBar,InfoBarPosition,FluentIcon,PushButton,TableWidget,BodyLabel,SwitchButton,StateToolTip,FlowLayout,MaskDialogBase,ImageLabel,CommandBarView,Flyout,Action,FlyoutAnimationType,MessageBox,CardWidget
+from qfluentwidgets.multimedia import VideoWidget
+from qfluentwidgets import FluentIcon as FIF
+from PyQt5.QtGui import QPixmap,QImage
+from PyQt5.QtWidgets import QVBoxLayout,QHBoxLayout,QSizePolicy
+from common.config import cfg
+import cv2
+from view.router_interface import RouterInterface
+from components.video.bilibiliLogin import BilibiliLogin
+from components.video.videoDownloader import get_downloader
+
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+
+class MoreTableFrame(TableWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.parentObject = parent
+        self.setEditTriggers(QTableWidget.NoEditTriggers)  # 禁用编辑
+        
+        self.verticalHeader().hide()  # 隐藏垂直头部
+        self.setBorderRadius(8)  # 设置圆角
+        self.setBorderVisible(True)  # 显示边框
+        self.setColumnCount(5)  # 设置列数
+        self.setColumnHidden(0, True)
+        self.setRowCount(0)  # 初始行数为 0
+        self.setHorizontalHeaderLabels([
+            self.tr(""),self.tr('文件大小'), self.tr('文件格式'),self.tr('分辨率'), self.tr('选择下载')
+        ])
+        # 初始数据
+        self.songInfos = [[]
+        ]
+
+        # 设置布局
+        layout = QVBoxLayout(self)
+        layout.addWidget(self)
+        
+
+    def update_table_data(self, data):
+        """
+        动态更新表格内容。
+        :param data: 新的二维数组，包含每行的表格数据
+        """
+        if not data:
+            return
+        self.setRowCount(len(data))  # 根据数据调整行数
+        self.setColumnHidden(0, True)
+        for i, row in enumerate(data):
+            for j in range(4):  # 填充前 5 列
+                self.setItem(i, j, QTableWidgetItem(row[j]))
+            # 创建下载按钮并添加到最后一列
+            download_button = PushButton("下载")
+            download_button_row = QWidget()
+            download_button_row.setLayout(QHBoxLayout())
+            download_button_row.layout().setAlignment(Qt.AlignCenter)
+            download_button_row.layout().setContentsMargins(0, 0, 0, 0)
+            download_button_row.layout().addWidget(download_button)
+            
+            # 将行号传递给按钮点击事件
+            download_button.clicked.connect(self.on_download_button_clicked)
+            self.setCellWidget(i, 4, download_button_row)  
+        self.resizeColumnsToContents()  # 自动调整列宽
+        self.horizontalHeader().setStretchLastSection(True)  # 确保最后一列填充剩余空间
+        
+    def on_download_button_clicked(self):
+        # 获取点击按钮所在行的索引
+        button = self.sender()  # 获取发送信号的对象（即按钮）
+        row = self.indexAt(button.parent().pos()).row()  # 获取该按钮所在的行索引
+        if self.parentObject.stateTooltip is not None:
+            InfoBar.warning(
+            title='警告',
+            content="有任务在进行中，请等待任务完成后再进行下载",
+            orient=Qt.Horizontal,
+            isClosable=False,   # disable close button
+            position=InfoBarPosition.BOTTOM,
+            duration=2000,
+            parent=self.parentObject.parentWidget().parentWidget()
+            )
+            return
+        self.parentObject.stateTooltip = StateToolTip('正在下载视频中', '请耐心等待哦～', self.parentObject.parentWidget().parentWidget())
+        self.parentObject.stateTooltip.move(self.parentObject.parentWidget().parentWidget().geometry().bottomLeft() - QPoint(-585,150))
+        self.parentObject.stateTooltip.show()
+        self.parentObject.downloader.download_video(self.parentObject.video_input.text(),self.item(row, 0).text())
+
+class BestTableFrame(TableWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.parentObject = parent
+        self.setEditTriggers(QTableWidget.NoEditTriggers)  # 禁用编辑
+        self.verticalHeader().hide()  # 隐藏垂直头部
+        self.setBorderRadius(8)  # 设置圆角
+        self.setBorderVisible(True)  # 显示边框
+        self.setColumnCount(6)  # 设置列数
+        self.setColumnHidden(0, True)
+        self.setRowCount(0)  # 初始行数为 0
+        self.setHorizontalHeaderLabels([
+            self.tr(""),self.tr('文件大小'), self.tr('分辨率'),self.tr('文件格式'),self.tr('描述'), self.tr('选择下载')
+        ])
+        # 初始数据
+        self.songInfos = [[]
+        ]
+
+        # 设置布局
+        layout = QVBoxLayout(self)
+        layout.addWidget(self)
+        # 自适应列宽
+        self.resizeColumnsToContents()
+        self.horizontalHeader().setStretchLastSection(True)
+    def update_table_data(self, data):
+        """
+        动态更新表格内容。
+        :param data: 新的二维数组，包含每行的表格数据
+        """
+        if not data:
+            return
+        self.setRowCount(len(data))  # 根据数据调整行数
+        
+        for i, row in enumerate(data):
+            for j in range(5): 
+                self.setItem(i, j, QTableWidgetItem(row[j]))
+            
+            # 创建下载按钮并添加到最后一列
+            download_button = PushButton("下载")
+            download_button_row = QWidget()
+            download_button_row.setLayout(QHBoxLayout())
+            download_button_row.layout().setAlignment(Qt.AlignCenter)
+            download_button_row.layout().setContentsMargins(0, 0, 0, 0)
+            download_button_row.layout().addWidget(download_button)
+            
+            # 将行号传递给按钮点击事件
+            download_button.clicked.connect(self.on_download_button_clicked)
+            self.setCellWidget(i, 5, download_button_row) 
+
+        # 自适应列宽
+        self.resizeColumnsToContents()
+        self.horizontalHeader().setStretchLastSection(True)
+
+
+    def on_download_button_clicked(self):
+        # 获取点击按钮所在行的索引
+        button = self.sender()  # 获取发送信号的对象（即按钮）
+        row = self.indexAt(button.parent().pos()).row()  # 获取该按钮所在的行索引
+        if self.parentObject.stateTooltip is not None:
+            InfoBar.warning(
+            title='警告',
+            content="有任务在进行中，请等待任务完成后再进行下载",
+            orient=Qt.Horizontal,
+            isClosable=False,   # disable close button
+            position=InfoBarPosition.BOTTOM,
+            duration=2000,
+            parent=self.parentObject.parentWidget().parentWidget()
+            )
+            return
+        self.parentObject.stateTooltip = StateToolTip('正在下载视频中', '请耐心等待哦～', self.parentObject.parentWidget().parentWidget())
+        self.parentObject.stateTooltip.move(self.parentObject.parentWidget().parentWidget().geometry().bottomLeft() - QPoint(-585,150))
+        self.parentObject.stateTooltip.show()
+        self.parentObject.downloader.download_video(self.parentObject.video_input.text(),self.item(row, 0).text(),True)
+
+class VideoMessageBox(MaskDialogBase):
+    def __init__(self, parent=None,fileName=None):
+        super().__init__(parent)
+        # 创建布局
+        # self.setLayout() = QVBoxLayout(self)
+        self.layout().setAlignment(Qt.AlignCenter)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        # VideoWidget
+        self.videoWidget = VideoWidget(self)
+        self.videoWidget.setVideo(QUrl.fromLocalFile(f"{cfg.get(cfg.downloadFolder)}"+f"/{fileName}")) 
+        self.videoWidget.setFixedSize(700, 500)
+        self.layout().addWidget(self.videoWidget)
+
+        self.videoWidget.play()
+
+    def mousePressEvent(self, event):
+        """ 处理鼠标点击事件，点击对话框外部时关闭 """
+        try:
+            if not self.videoWidget.geometry().contains(event.pos()):
+                self.close()  # 点击透明遮罩部分关闭对话框
+            else:
+                super().mousePressEvent(event)
+        except:
+            pass
+
+    def resizeEvent(self, event):
+        """ 窗口大小调整时手动设置 videoWidget 的位置 """
+        super().resizeEvent(event)
+        if self.videoWidget:
+            # 确保 videoWidget 居中
+            videoWidgetX = (self.width() - self.videoWidget.width()) // 2
+            videoWidgetY = (self.height() - self.videoWidget.height()) // 2
+            self.videoWidget.move(videoWidgetX, videoWidgetY)
+        
+class VideoReusltItem(ImageLabel):
+    def __init__(self, parent,fileName):
+        super().__init__(parent)
+        self.fileName = fileName
+        self.setBorderRadius(6,6,6,6)
+        self.setAlignment(Qt.AlignCenter)
+        self.clicked.connect(self.createCommandBarFlyout)
+       # 获取视频封面并设置为图片
+        thumbnail = self.get_video_thumbnail(f"{cfg.get(cfg.downloadFolder)}/{fileName}")
+        if thumbnail:
+            self.setPixmap(thumbnail)
+
+    def get_video_thumbnail(self, video_path):
+        """ 提取视频第一帧并转换为 QPixmap """
+        cap = cv2.VideoCapture(video_path)
+        ret, frame = cap.read()
+        cap.release()
+
+        if ret:
+            # 将 BGR 转换为 RGB
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            
+            # 固定大小
+            fixed_width = 170  # 固定宽度
+            fixed_height = 110  # 固定高度
+            frame_resized = cv2.resize(frame_rgb, (fixed_width, fixed_height))  # 缩放到固定大小
+
+            # 转换为 QImage
+            height, width, channel = frame_resized.shape
+            image = QImage(frame_resized.data, width, height, 3 * width, QImage.Format_RGB888)
+            # 转换为 QPixmap
+            pixmap = QPixmap.fromImage(image)
+            return pixmap
+        return None
+    def showVideoDialog(self):
+        w = VideoMessageBox(self.window(),self.fileName)
+        w.exec()
+    def createCommandBarFlyout(self):
+        """弹出操作工具条（保存和删除）"""
+        view = CommandBarView(self)
+
+        # 创建动作
+        view.addAction(Action(FIF.VIEW, self.tr('查看视频'), triggered=self.showVideoDialog))
+        view.addAction(Action(FIF.DELETE, self.tr('查看视频'), triggered=self.deleteVideo))
+        view.resizeToSuitableWidth()
+
+        x = self.width()  # 获取当前组件的宽度
+        pos = self.mapToGlobal(QPoint(x-60, -30))
+        Flyout.make(view, pos, self, FlyoutAnimationType.FADE_IN)
+
+    def deleteVideo(self):
+        """ 删除视频文件 """
+        reply = MessageBox('删除视频', '确定要删除该视频吗？', self.window())
+        reply.yesButton.setText(self.tr('是'))
+        reply.cancelButton.setText(self.tr('取消'))
+        if reply.exec():
+            os.remove(f"{cfg.get(cfg.downloadFolder)}/{self.fileName}")
+            self.deleteLater()
+            self.parent().flowLayout.removeWidget(self)
+            self.parent().flowLayout.update()
+        
+
+class VideoResultWidget(QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.download_result_widget = SmoothScrollArea(self)
+        self.download_result_widget.setVisible(False)
+
+        self.flowLayout = FlowLayout(self, needAni=True)
+        self.flowLayout.setAnimation(250, QEasingCurve.OutQuad)
+        self.flowLayout.setContentsMargins(10, 10, 10, 10)
+        self.refreshItem()
+    
+
+    def refreshItem(self):
+        self.flowLayout.removeAllWidgets()
+        """ 添加视频项目到布局 """
+        # 获取文件夹下的所有视频文件
+        video_files = self.get_video_files(cfg.get(cfg.downloadFolder))
+
+        for video_file in video_files:
+            item = VideoReusltItem(self, video_file)
+            self.flowLayout.addWidget(item)
+            
+    def get_video_files(self, folder_path):
+        """ 获取指定文件夹下的所有视频文件 """
+        video_files = []
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                if file.endswith(('.mp4', '.avi', '.mkv')):  # 可根据需要添加更多视频格式
+                    video_files.append(file)
+        return video_files
+    
+
+class VideoInterface(RouterInterface):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.downloader = get_downloader()
+        self.setObjectName('VideoInterface')
+        self.__initWidget()
+        self.__initLayout()
+        self.stateTooltip =None
+    def __initWidget(self):
+        # 创建主布局
+        self.main_layout = QHBoxLayout(self)
+
+        # 在左侧滚动区域中放置一个 QWidget 作为容器
+        self.left_widget = SmoothScrollArea(self)
+        
+        # 创建左侧内容布局
+        self.MoretableFrame = MoreTableFrame(self)
+        self.MoretableFrame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.BestTableFrame = BestTableFrame(self)
+        self.BestTableFrame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        # 将布局设置为left_widget的内容
+        left_container = QWidget(self)
+        left_layout = QVBoxLayout(left_container)
+        left_layout.setAlignment(Qt.AlignTop)
+        left_container.setContentsMargins(10, 0, 10, 0)
+        self.left_widget.setWidget(left_container)  # 设置可以滚动的区域
+
+        self.bilibiliLogin = BilibiliLogin(self)
+
+        # 创建输入框
+        self.searcher = QWidget(self)
+        self.searcher.setLayout(QHBoxLayout())
+        self.video_input = LineEdit(self)
+        self.video_input.setPlaceholderText("请输入视频链接")
+        self.video_btn = PrimaryPushButton("搜索", self)
+        self.video_btn.setDisabled(True)
+
+        # 创建右侧区域
+        # self.right_widget = CardWidget(self)
+        self.videoResultWidget = VideoResultWidget(self)
+        
+        # self.right_layout = QVBoxLayout(self.right_widget)
+        # self.right_layout.setAlignment(Qt.AlignCenter)
+
+        # self.right_layout.addWidget(self.bilibiliLogin)
+        self.savePath = CaptionLabel(f"{cfg.get(cfg.downloadFolder)}", self)
+        self.saveBtn = PushButton("选择保存路径", self)
+        
+
+        self.searcher.layout().addWidget(self.video_input)
+        self.searcher.layout().addWidget(self.video_btn)
+        self.searcher.layout().addWidget(self.bilibiliLogin)
+        # 添加左侧内容布局
+        left_layout.addWidget(self.searcher)
+        left_layout.addWidget(self.BestTableFrame)
+        self.more_switch = SwitchButton(self.tr('查看更多'))
+        self.tool_group = QWidget(self)
+        self.tool_group.setLayout(QHBoxLayout())
+        self.tool_group.layout().addWidget(self.more_switch)
+        self.saveBtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.savePath.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.tool_group.layout().addWidget(self.savePath)
+        self.tool_group.layout().addWidget(self.saveBtn)
+        left_layout.addWidget(self.tool_group)
+        self.more_label = BodyLabel("音频 视频分离", self)
+        left_layout.addWidget(self.more_label)
+        left_layout.addWidget(self.MoretableFrame)
+        self.more_label.hide()
+        self.MoretableFrame.hide()
+        left_layout.addWidget(self.videoResultWidget)
+        # 将左侧和右侧区域添加到主布局
+        self.main_layout.addWidget(self.left_widget)
+        # self.main_layout.addWidget(self.right_widget, 1)
+
+
+
+        infoBar = InfoBar(
+            icon=FluentIcon.PIN,
+            title=self.tr('支持'),
+            content=self.tr("只支持下载 Bilibili、YouTube 视频"),
+            orient=Qt.Horizontal,
+            isClosable=True,
+            duration=-1,
+            position=InfoBarPosition.BOTTOM_RIGHT,
+            parent=self.left_widget
+        )
+        infoBar.setCustomBackgroundColor("white", "#2a2a2a")
+
+        self.video_input.textChanged.connect(self.rePath)
+        self.saveBtn.clicked.connect(self.select_save_path)
+        self.video_btn.clicked.connect(self.get_download_video)
+        self.more_switch.checkedChanged.connect(self.onSwitchCheckedChanged)
+        self.downloader.progress.connect(self.update_progress)
+    
+    def update_progress(self, progress):
+        if progress:
+            if self.stateTooltip:
+                self.stateTooltip.setContent('下载完成啦 😆')
+                self.stateTooltip.setState(True)
+                self.stateTooltip = None
+                self.videoResultWidget.refreshItem()
+        else:
+            if self.stateTooltip:
+                self.stateTooltip.setContent(f'下载失败了 😭')
+                self.stateTooltip.setState(True)
+                self.stateTooltip = None
+
+    def onSwitchCheckedChanged(self, isChecked):
+        if isChecked:
+            self.more_switch.setText(self.tr('查看更多'))
+            self.more_label.show()
+            self.MoretableFrame.show()
+        else:
+            self.more_switch.setText(self.tr('关闭更多'))
+            self.more_label.hide()
+            self.MoretableFrame.hide()
+            
+            
+    def rePath(self):
+        # 匹配 Bilibili 或 YouTube 的视频链接
+        match = re.search(r"(BV[1-9A-Za-z]{10}|https://www\.youtube\.com/watch\?v=[\w-]{11})", self.video_input.text())
+        if match:
+            self.video_btn.setDisabled(False)
+        else:
+            self.video_btn.setDisabled(True)
+
+    def get_download_video(self):
+        best,more = self.downloader.get_download_video_list(self.video_input.text())
+        self.BestTableFrame.update_table_data(best)
+        self.MoretableFrame.update_table_data(more)
+        self.BestTableFrame.updateGeometry()  
+        self.BestTableFrame.viewport().update()
+        
+    def __initLayout(self):
+        # self.left_widget.setAutoFillBackground(True)
+        self.left_widget.enableTransparentBackground()
+        self.left_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.left_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.left_widget.setViewportMargins(0, 0, 0, 0)
+        self.left_widget.setWidgetResizable(True)
+        self.left_widget.setAlignment(Qt.AlignTop)
+
+        # self.right_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        # self.right_widget.setStyleSheet("background:transparent;border:none;")
+        # self.right_layout.setAlignment(Qt.AlignTop)
+        # self.right_layout.setContentsMargins(0,0, 0, 0)
+
+        # self.bilibiliLogin.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        
+    def select_save_path(self):
+        """选择保存路径"""
+        save_path = QFileDialog.getExistingDirectory(self, "选择保存路径")
+        if save_path!= "":  # 只有用户选择路径时才更新
+            self.savePath.setText(save_path)
+            cfg.set(cfg.downloadFolder, save_path)

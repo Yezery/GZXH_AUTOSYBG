@@ -1,15 +1,14 @@
 import os
-from PyQt5.QtWidgets import QWidget,QVBoxLayout,QFileDialog
+from PyQt5.QtWidgets import QVBoxLayout,QFileDialog
 from PyQt5.QtCore import QEvent,Qt,QPoint,pyqtSlot
 from PyQt5.QtGui import QDragEnterEvent
 from docx import Document
 from docx.document import Document as DocumentObject
 from components.Message import createMessage
 from utils import AI
-from qfluentwidgets import pyqtSignal,BodyLabel,StateToolTip
-from qfluentwidgets import FluentIcon as FIF
+from qfluentwidgets import pyqtSignal,BodyLabel,StateToolTip,CardWidget
 from common.config import cfg
-class DropFileUploadDOCX(QWidget):
+class DropFileUploadDOCX(CardWidget):
     ai_summary_generated = pyqtSignal(str) 
     isUpload = pyqtSignal(bool) 
     docx_emit = pyqtSignal(DocumentObject)
@@ -104,6 +103,7 @@ class DropFileUploadDOCX(QWidget):
         """重置标签内容"""
         self.label.setText("拖拽文件或点击选择文件")
         self.label.setStyleSheet(self.label.styleSheet() + "background-color: #f9f9f9;")
+        
 
     def truncate_file_name(self, file_name, max_length=20):
         """截断文件名"""

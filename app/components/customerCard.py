@@ -1,8 +1,5 @@
-from typing import Union
-from qfluentwidgets import SettingCard,pyqtSignal,FluentIconBase,LineEdit
+from qfluentwidgets import SettingCard,LineEdit
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from qfluentwidgets import FluentIcon as FIF
 from common.config import cfg
 # class NameCard(SettingCard):    
 

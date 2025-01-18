@@ -5,8 +5,18 @@ from enum import Enum
 
 from PyQt5.QtCore import QLocale
 from qfluentwidgets import (qconfig, QConfig, ConfigItem, OptionsConfigItem, BoolValidator,
-                            OptionsValidator, RangeConfigItem, RangeValidator,
+                            OptionsValidator, RangeConfigItem, RangeValidator,FolderValidator,
                             Theme, ConfigSerializer)
+
+
+
+YEAR = 2025
+AUTHOR = "ZivYE"
+VERSION = "V 1.3.0"
+HELP_URL = "https://github.com/yezery/GZXH_AUTOSYBG"
+# REPO_URL = "https://github.com/zhiyiYo/PyQt-Fluent-Widgets"
+FEEDBACK_URL = "https://github.com/yezery/GZXH_AUTOSYBG/issues"
+RELEASE_URL = "https://github.com/yezery/GZXH_AUTOSYBG/releases/latest"
 
 
 class Language(Enum):
@@ -33,7 +43,8 @@ def isWin11():
 
 class Config(QConfig):
     """ Config of application """
-
+    def __init__(self):
+        super().__init__()
     # base
     userName = ConfigItem("User", "UserName", "")
     userId = ConfigItem("User", "UserId", "")
@@ -41,8 +52,8 @@ class Config(QConfig):
     apiKey = ConfigItem("User", "ApiKey", "")
     secretKey = ConfigItem("User", "SecretKey", "")
     updateToken = ConfigItem("User", "UpdateToken", "")
-    # downloadFolder = ConfigItem(
-    #     "Folders", "Download", "app/download", FolderValidator())
+    downloadFolder = ConfigItem(
+        "Folders", "Download",os.path.join(os.path.expanduser("~"), "Desktop") ,FolderValidator())
 
     # main window
     micaEnabled = ConfigItem("MainWindow", "MicaEnabled", isWin11(), BoolValidator())
@@ -57,25 +68,16 @@ class Config(QConfig):
     # software update
     checkUpdateAtStartUp = ConfigItem("Update", "CheckUpdateAtStartUp", True, BoolValidator())
 
+
     def resource_path(self,relative_path):
         """获取资源文件的路径"""
         if getattr(sys, 'frozen', False):  # 检测是否为打包环境
             # PyInstaller 会将资源文件放置在 .app/Contents/Resources 目录（如果是Mac应用）
             base_path = sys._MEIPASS
         else:  # 未打包环境
-            base_path = os.path.abspath("./source")
-        print(os.path.join(base_path, relative_path))
+            base_path = os.path.abspath("./app/resource")
         return os.path.join(base_path, relative_path)
 
-
-
-YEAR = 2024
-AUTHOR = "ZivYE"
-VERSION = "V 1.1.1"
-HELP_URL = "https://github.com/yezery/GZXH_AUTOSYBG"
-# REPO_URL = "https://github.com/zhiyiYo/PyQt-Fluent-Widgets"
-FEEDBACK_URL = "https://github.com/yezery/GZXH_AUTOSYBG/issues"
-RELEASE_URL = "https://github.com/yezery/GZXH_AUTOSYBG/releases/latest"
 
 
 cfg = Config()

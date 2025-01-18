@@ -1,0 +1,28 @@
+{
+    "User": {
+        "ApiKey": "gJBWXXcfaIyQ1AXs5b6gyZPp",
+        "SecretKey": "VAOa3QhPlE3o1tybWHvKfyXiJ85rGYTl",
+        "UpdateToken": "",
+        "UserCourse": "22数媒6",
+        "UserId": "22054181",
+        "UserName": "叶正睿"
+    },
+    "Material": {
+        "AcrylicBlurRadius": 0
+    },
+    "Update": {
+        "CheckUpdateAtStartUp": true
+    },
+    "Folders": {
+        "Download": "/Users/yezery/Desktop"
+    },
+    "MainWindow": {
+        "DpiScale": "Auto",
+        "Language": "zh_CN",
+        "MicaEnabled": false
+    },
+    "QFluentWidgets": {
+        "ThemeColor": "#ff000000",
+        "ThemeMode": "Dark"
+    }
+}

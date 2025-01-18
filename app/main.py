@@ -3,14 +3,17 @@ import sys
 from qfluentwidgets import FluentIcon as FIF
 from PyQt5.QtWidgets import QFrame,QHBoxLayout,QApplication
 from PyQt5.QtCore import Qt,QSize,QTimer
-from qfluentwidgets import SystemThemeListener,SubtitleLabel,setFont,MSFluentWindow,NavigationItemPosition,SplashScreen,TeachingTip,TeachingTipTailPosition,TeachingTipView,isDarkTheme
-from components.Icon import Icon
-from PyQt5.QtGui import QFont
+from qfluentwidgets import SubtitleLabel,setFont,MSFluentWindow,NavigationItemPosition,SplashScreen,TeachingTip,TeachingTipTailPosition,TeachingTipView,isDarkTheme
 from utils.AutoUpdater import AutoUpdater
-from view.app_interface import AppInterface
+from view.router_interface import RouterInterface
+from view.video_interface import VideoInterface
+from view.home_interface import HomeInterface
+from components.Icon import Icon
+from view.sybg_interface import SYBGInterface
 from view.setting_interface import SettingInterface
 from view.summary_interface import SummaryInterface
 from common.config import cfg
+from common.signal_bus import signalBus
 class Widget(QFrame):
 
     def __init__(self, text: str, parent=None):
@@ -29,19 +32,28 @@ class Window(MSFluentWindow):
         # self.themeListener = SystemThemeListener(self)
         self.initWindow()
         # create sub interface
-        self.appInterface = AppInterface("任务",self)
-        self.summaryInterface = SummaryInterface("Summary Interface",self)
-        self.serviceInterface = Widget('文件转换服务...开发中', self)
+        # self.homeInterface = HomeInterface(self)
+        self.sybgInterface = SYBGInterface(self)
+        self.summaryInterface = SummaryInterface(1,self)
+        # self.serviceInterface = Widget('文件转换服务...开发中', self)
+        self.videoInterface =  VideoInterface(self)
         self.settingInterface = SettingInterface(self)
+        self.connectSignalToSlot()
         self.initNavigation()
         # self.themeListener.start()
         self.splashScreen.finish()
-       
+    
+    def connectSignalToSlot(self):
+        # signalBus.micaEnableChanged.connect(self.setMicaEffectEnabled)
+        signalBus.switchTo.connect(self.switchToRouter)
+        # signalBus.supportSignal.connect(self.onSupport)
 
     def initNavigation(self):
-        self.addSubInterface(self.appInterface, FIF.LABEL, '任务')
+        # self.addSubInterface(self.homeInterface, FIF.HOME, '首页')
+        self.addSubInterface(self.sybgInterface, FIF.LABEL, '实验报告')
         self.addSubInterface(self.summaryInterface, FIF.ROBOT, 'AI心得')
-        self.addSubInterface(self.serviceInterface, FIF.TILES, '文档转换')
+        # self.addSubInterface(self.serviceInterface, FIF.TILES, '文档转换')
+        self.addSubInterface(self.videoInterface, FIF.VIDEO, '视频解析')
         
 
         self.addSubInterface(self.settingInterface, FIF.SETTING, '设置', FIF.SETTING, NavigationItemPosition.BOTTOM)
@@ -49,18 +61,18 @@ class Window(MSFluentWindow):
         # 添加自定义导航组件
         self.navigationInterface.addItem(
             routeKey='Help',
-            icon=FIF.HELP,
+            icon=FIF.EXPRESSIVE_INPUT_ENTRY,
             text='帮助',
             onClick=self.showMessageBox,
             selectable=False,
             position=NavigationItemPosition.BOTTOM,
         )
 
-        self.navigationInterface.setCurrentItem(self.appInterface.objectName())
+        self.navigationInterface.setCurrentItem(self.sybgInterface.objectName())
 
     def initWindow(self):
-        self.resize(900, 700)
-        logo_path = cfg.resource_path("logo.png")
+        self.resize(1000, 800)
+        logo_path = cfg.resource_path("images/logo.png")
         self.setWindowIcon(Icon(logo_path))
         self.setWindowTitle('GEN')
 
@@ -88,7 +100,12 @@ class Window(MSFluentWindow):
         if self.isMicaEffectEnabled():
             QTimer.singleShot(100, lambda: self.windowEffect.setMicaEffect(self.winId(), isDarkTheme()))
 
-
+    def switchToRouter(self, routeKey, index):
+            """ switch to sample """
+            interfaces = self.findChildren(RouterInterface)
+            for w in interfaces:
+                if w.objectName() == routeKey:
+                    self.stackedWidget.setCurrentWidget(w, False)
     
     def showMessageBox(self):
             pos = TeachingTipTailPosition.LEFT_BOTTOM
@@ -98,6 +115,7 @@ class Window(MSFluentWindow):
                 content="开发不易，如果这个项目帮助到了您，可以考虑请作者喝一杯咖啡。\n 您的支持就是作者开发和维护项目的动力🚀",
                 isClosable=True,
                 tailPosition=pos,
+                image=cfg.resource_path("images/my.jpg")
             )
             t = TeachingTip.make(view, self.navigationInterface.children()[-1], 3000, pos, self)
             view.closed.connect(t.close)
@@ -115,21 +133,13 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
-#     app.setStyleSheet("""
-#     QWidget {
-#         background-color: white;  
-#         color: #000000;           
-#     }
-# """)
-
     w = Window()
-    w.setMinimumWidth(900)
-    w.setMinimumHeight(700)
+    w.setMinimumWidth(1000)
+    w.setMinimumHeight(800)
     w.show()
     if cfg.get(cfg.checkUpdateAtStartUp):
-        #  初始化自动更新器
-        updater = AutoUpdater(github_user="yezery", repo_name="GZXH_AUTOSYBG", current_version="V1.2.0", parent=w)
         # 检测更新
-        updater.check_for_update()
+        update = AutoUpdater(parent=w)
+        update.check_for_updates()
     app.exec()
     

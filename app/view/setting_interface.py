@@ -1,20 +1,17 @@
 
-from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import Qt
-from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, FolderListSettingCard,
-                            OptionsSettingCard, PushSettingCard,LineEdit,
-                            HyperlinkCard, PrimaryPushSettingCard, ScrollArea,
-                            ComboBoxSettingCard, ExpandLayout, CustomColorSettingCard,SmoothScrollArea,SettingCard,
-                            setTheme, setThemeColor, RangeSettingCard)
+from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, OptionsSettingCard, PrimaryPushSettingCard,
+                            ExpandLayout, CustomColorSettingCard,setTheme, setThemeColor)
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import InfoBar
-from PyQt5.QtCore import Qt, QUrl, QStandardPaths
+from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QWidget, QLabel, QFileDialog
+from PyQt5.QtWidgets import QWidget
 
+from view.router_interface import RouterInterface
+from utils.AutoUpdater import AutoUpdater
 from components.customerCard import CoustomCard
-from common.config import cfg, HELP_URL, FEEDBACK_URL, AUTHOR, VERSION, YEAR, isWin11
-from common.signal_bus import signalBus
+from common.config import cfg, FEEDBACK_URL, AUTHOR, VERSION, YEAR
 
 from qfluentwidgets import FluentIcon as FIF
 
@@ -157,7 +154,7 @@ from qfluentwidgets import FluentIcon as FIF
 #         finally:
 #             self.load_config()
 
-class SettingInterface(ScrollArea):
+class SettingInterface(RouterInterface):
     """ Setting interface """
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -166,19 +163,18 @@ class SettingInterface(ScrollArea):
         self.expandLayout = ExpandLayout(self.scrollWidget)
         self.enableTransparentBackground()
         # base folders
-        self.baseSetting = SettingCardGroup(
-            self.tr("基本设置"), self.scrollWidget)
-        # self.musicFolderCard = FolderListSettingCard(
-        #     cfg.musicFolders,
-        #     self.tr("Local music library"),
-        #     directory=QStandardPaths.writableLocation(
-        #         QStandardPaths.MusicLocation),
-        #     parent=self.baseSetting
-        # )
-        # self.setStyleSheet("QWidget{background: white}")
-        self.nameCard = CoustomCard(FIF.DICTIONARY, self.tr("姓名"), cfg.userName, "请输入姓名", self.baseSetting)
-        self.idCard = CoustomCard(FIF.FINGERPRINT, self.tr("学号"), cfg.userId, "请输入学号", self.baseSetting)
-        self.courseCard = CoustomCard(FIF.CERTIFICATE, self.tr("班级"), cfg.userCourse, "请输入班级", self.baseSetting)
+        # self.baseSetting = SettingCardGroup(
+        #     self.tr("基本设置"), self.scrollWidget)
+        # # self.DownLoadFolderCard = FolderListSettingCard(
+        # #     cfg.DownloadFolders,
+        # #     self.tr("Local music library"),
+        # #     directory=QStandardPaths.writableLocation(
+        # #         QStandardPaths.MusicLocation),
+        # #     parent=self.baseSetting
+        # # )
+        # self.nameCard = CoustomCard(FIF.DICTIONARY, self.tr("姓名"), cfg.userName, "请输入姓名", self.baseSetting)
+        # self.idCard = CoustomCard(FIF.FINGERPRINT, self.tr("学号"), cfg.userId, "请输入学号", self.baseSetting)
+        # self.courseCard = CoustomCard(FIF.CERTIFICATE, self.tr("班级"), cfg.userCourse, "请输入班级", self.baseSetting)
         # self.downloadFolderCard = PushSettingCard(
         #             self.tr('选择文件夹'),
         #             FIF.DOWNLOAD,
@@ -189,9 +185,8 @@ class SettingInterface(ScrollArea):
        
         self.proSetting = SettingCardGroup(
             self.tr("高级设置"), self.scrollWidget)
-        self.apiKeyCard = CoustomCard(FIF.TAG, self.tr("Api Key"), cfg.apiKey, "请输入Api Key", self.baseSetting)
-        self.secretKeyCard = CoustomCard(FIF.PIN, self.tr("Secret Key"), cfg.secretKey, "请输入Secret Key", self.baseSetting)
-        self.updateTokenCard = CoustomCard(FIF.VPN, self.tr("Update Token"), cfg.updateToken, "请输入Update Token", self.baseSetting)
+        self.apiKeyCard = CoustomCard(FIF.IOT, self.tr("Api Key"), cfg.apiKey, "请输入Api Key", self.proSetting)
+        self.secretKeyCard = CoustomCard(FIF.VPN, self.tr("Secret Key"), cfg.secretKey, "请输入Secret Key", self.proSetting)
         self.apiKeyCard.setDisabled(True)
         self.secretKeyCard.setDisabled(True)
 
@@ -281,6 +276,8 @@ class SettingInterface(ScrollArea):
             self.tr('当前版本') + " " + VERSION,
             self.aboutGroup
         )
+        updater=AutoUpdater(self.window())
+        self.aboutCard.button.clicked.connect(lambda:updater.check_for_updates())
 
         self.__initWidget()
 
@@ -308,14 +305,13 @@ class SettingInterface(ScrollArea):
 
         # add cards to group
         # self.baseSetting.addSettingCard(self.musicFolderCard)
-        self.baseSetting.addSettingCard(self.nameCard)
-        self.baseSetting.addSettingCard(self.courseCard)
-        self.baseSetting.addSettingCard(self.idCard)
+        # self.baseSetting.addSettingCard(self.nameCard)
+        # self.baseSetting.addSettingCard(self.courseCard)
+        # self.baseSetting.addSettingCard(self.idCard)
         # self.baseSetting.addSettingCard(self.downloadFolderCard)
 
         self.proSetting.addSettingCard(self.apiKeyCard)
         self.proSetting.addSettingCard(self.secretKeyCard)
-        self.proSetting.addSettingCard(self.updateTokenCard)
 
 
         # self.personalGroup.addSettingCard(self.micaCard)
@@ -335,7 +331,7 @@ class SettingInterface(ScrollArea):
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(36, 10, 36, 0)
-        self.expandLayout.addWidget(self.baseSetting)
+        # self.expandLayout.addWidget(self.baseSetting)
         self.expandLayout.addWidget(self.proSetting)
         self.expandLayout.addWidget(self.personalGroup)
         # self.expandLayout.addWidget(self.materialGroup)
@@ -351,15 +347,15 @@ class SettingInterface(ScrollArea):
             parent=self
         )
 
-    def __onDownloadFolderCardClicked(self):
-        """ download folder card clicked slot """
-        folder = QFileDialog.getExistingDirectory(
-            self, self.tr("选择文件夹"), "./")
-        if not folder or cfg.get(cfg.downloadFolder) == folder:
-            return
+    # def __onDownloadFolderCardClicked(self):
+    #     """ download folder card clicked slot """
+    #     folder = QFileDialog.getExistingDirectory(
+    #         self, self.tr("选择文件夹"), "./")
+    #     if not folder or cfg.get(cfg.downloadFolder) == folder:
+    #         return
 
-        cfg.set(cfg.downloadFolder, folder)
-        self.downloadFolderCard.setContent(folder)
+    #     cfg.set(cfg.downloadFolder, folder)
+    #     self.downloadFolderCard.setContent(folder)
 
     def __connectSignalToSlot(self):
         """ connect signal to slot """

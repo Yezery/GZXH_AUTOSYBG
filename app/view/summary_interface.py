@@ -1,16 +1,17 @@
 from PyQt5.QtWidgets import QVBoxLayout,QHBoxLayout,QApplication,QSizePolicy
 from PyQt5.QtCore import Qt,pyqtSlot
-from qfluentwidgets import TextEdit,PrimaryPushButton,CardWidget,PushButton,pyqtSignal
+from qfluentwidgets import TextEdit,PrimaryPushButton,PushButton,pyqtSignal
+from view.router_interface import RouterInterface
 from components.DropFileUpload import DropFileUploadDOCX
 from docx.document import Document as DocumentObject
-class SummaryInterface(CardWidget):
+class SummaryInterface(RouterInterface):
     gen_signal = pyqtSignal() 
     isUpload = pyqtSignal(bool)
     docx_emit = pyqtSignal(DocumentObject)
-    def __init__(self, text, parent=None):
+    def __init__(self,id, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.setObjectName(text.replace(' ', '-'))
+        self.setObjectName("SummaryInterface_"+str(id))
 
         # 主布局
         main_layout = QVBoxLayout()

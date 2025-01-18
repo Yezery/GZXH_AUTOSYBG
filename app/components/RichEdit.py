@@ -1,5 +1,5 @@
 from qfluentwidgets import TextEdit,CommandBar,Action
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFileDialog
+from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from PyQt5.QtGui import QFont, QTextListFormat
 from PyQt5.QtCore import Qt
 from docx import Document
@@ -13,7 +13,7 @@ class RichEdit(QWidget):
         super().__init__(parent)
         self.parent = parent
         self.layout = QVBoxLayout(self)
-        self.setFixedWidth(345)
+        self.setFixedWidth(350)
         # 创建 TextEdit（富文本编辑器）
         self.textEdit = TextEdit(self)
 
@@ -29,64 +29,64 @@ class RichEdit(QWidget):
 
     def create_toolbar(self,image_path):
         """创建工具栏并添加功能按钮"""
-        toolbar = CommandBar(self)
+        self.toolbar = CommandBar(self)
 
         # 加粗
         bold_action = Action(FIF.FONT_INCREASE, self.tr('加粗'))
         bold_action.triggered.connect(self.set_bold)
-        toolbar.addAction(bold_action)
+        self.toolbar.addAction(bold_action)
 
         # 斜体
         italic_action = Action(FIF.PENCIL_INK, self.tr('斜体'))
         italic_action.triggered.connect(self.set_italic)
-        toolbar.addAction(italic_action)
+        self.toolbar.addAction(italic_action)
 
         # 下划线
         underline_action = Action(FIF.REMOVE, self.tr('下划线'))
         underline_action.triggered.connect(self.set_underline)
-        toolbar.addAction(underline_action)
+        self.toolbar.addAction(underline_action)
 
-        toolbar.addSeparator()
+        self.toolbar.addSeparator()
         
         if image_path:
             watch_action = Action(FIF.ZOOM_IN, self.tr('放大'))
             watch_action.triggered.connect(lambda: self.parent.view_image(image_path))
-            toolbar.addAction(watch_action)
+            self.toolbar.addAction(watch_action)
 
         delete_action = Action(FIF.DELETE, self.tr('删除'))
         delete_action.triggered.connect(self.parent.delete_group)
-        toolbar.addAction(delete_action)
+        self.toolbar.addAction(delete_action)
 
 
 
         # 分点列表
         # bullet_action = Action(FIF.CALENDAR, self.tr('分点列表'))
         # bullet_action.triggered.connect(self.add_bullet_list)
-        # toolbar.addAction(bullet_action)
+        # self.toolbar.addAction(bullet_action)
 
         # # 字号选择框
         # self.font_size_combo = ComboBox(self)
         # self.font_size_combo.addItems([str(i) for i in range(8, 73, 2)])  # 字号从8到72（步长为2）
         # self.font_size_combo.currentTextChanged.connect(self.change_font_size)
-        # toolbar.addWidget(self.font_size_combo)
+        # self.toolbar.addWidget(self.font_size_combo)
 
         # 左对齐
         # align_left_action = Action(FIF.ALIGNMENT,self.tr('斜体'))
         # align_left_action.triggered.connect(self.align_left)
-        # toolbar.addAction(align_left_action)
+        # self.toolbar.addAction(align_left_action)
 
         # # 居中对齐
         # align_center_action = Action(FIF.MENU,self.tr('斜体'))
         # align_center_action.triggered.connect(self.align_center)
-        # toolbar.addAction(align_center_action)
+        # self.toolbar.addAction(align_center_action)
 
         # # 右对齐
         # align_right_action = Action(FIF.MENU, self.tr('斜体'))
         # align_right_action.triggered.connect(self.align_right)
-        # toolbar.addAction(align_right_action)
+        # self.toolbar.addAction(align_right_action)
 
         # 添加工具栏到布局
-        self.layout.addWidget(toolbar)
+        self.layout.addWidget(self.toolbar)
 
     def set_bold(self):
         """设置选中文字为加粗"""

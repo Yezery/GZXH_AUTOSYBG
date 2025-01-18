@@ -6,7 +6,7 @@ class QFAI:
     def __init__(self, API_KEY, SECRET_KEY):
         self.API_KEY = API_KEY
         self.SECRET_KEY = SECRET_KEY
-        self.prompt = "请根据以下内容以第一人称'我'写有一份150字以内的实验报告心得,不要出现文尾总结和开头的总结,心得不要出现标题\n\n"
+        self.prompt = "请根据以下内容写有一份150字以内的实验报告心得（不要使用“首先”、“其次”、“然而”、“总的来说”、“总之”这些副词）。尽量用主动句，增加文章力量。避免使用陈词滥调，换成新颖的表达。避免生硬的总结或说教。删除小标题。\n\n"
 
     def QFAsk(self,content:str):
         try:

@@ -1,14 +1,15 @@
 import os
 import platform
+import re
+import shutil
 import sys
-import webbrowser
 import requests
 import subprocess
 from packaging.version import Version
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from qfluentwidgets import MessageBox, ProgressRing, MessageBoxBase
 from components.Message import createMessage
-from common.config import cfg
+from common.config import VERSION
 class CustomMessageBox(MessageBoxBase):
     """ Custom message box """
     def __init__(self, parent=None):
@@ -24,11 +25,42 @@ class CustomMessageBox(MessageBoxBase):
         self.ring.setFixedSize(150, 150)
         # 调整厚度
         self.ring.setStrokeWidth(15)
+        self.yesButton.setText(self.tr('是'))
+        self.cancelButton.setText(self.tr('取消'))
         # 将组件添加到布局中
         self.viewLayout.deleteLater()
         self.vBoxLayout.setContentsMargins(40, 40, 40, 40)
         self.vBoxLayout.setAlignment(Qt.AlignCenter)
         self.vBoxLayout.addWidget(self.ring)
+        self.hide()
+
+class UpdateCheckThread(QThread):
+    """检测更新的线程"""
+    update_check_complete = pyqtSignal(bool, str, str)  # 成功标志、提示信息、下载链接
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+    def run(self):
+        """执行更新检测"""
+        try:
+            url = f"https://gen.zivye.asia//service/rest/v1/components?repository=GEN"
+            response = requests.get(url)
+            if response.status_code == 200:
+                release_info = response.json()
+                items = release_info['items']
+                release_version = items[-1]['group']
+
+                if Version(release_version.lstrip("/V")) > Version(VERSION.lstrip("V")):
+                    system = platform.system().lower()
+                    for item in items:
+                        if release_version in item.values() and re.search(rf"{system}", item['name']):
+                            self.update_check_complete.emit(True,release_version.lstrip("/"), item['assets'][0]['downloadUrl'])
+                            break
+            else:
+                self.update_check_complete.emit(False, f"无法获取更新信息，状态码：{response.status_code}", "")
+        except Exception as e:
+            print(e)
+            self.update_check_complete.emit(False, f"检测更新失败", "")
 
 class DownloadThread(QThread):
     """后台线程下载文件"""
@@ -66,180 +98,177 @@ class DownloadThread(QThread):
             createMessage(self.parent, "下载失败", f"下载新版本时出错：{e}", 0)
             self.download_complete.emit("error")
 
-class UpdateCheckThread(QThread):
-    """检测更新的线程"""
-    update_check_complete = pyqtSignal(bool, str, str)  # 成功标志、提示信息、下载链接
+class MountAndInstallThread(QThread):
+    """后台线程处理 DMG 挂载和安装"""
+    update_progress = pyqtSignal(int)  # 用于更新进度条的信号
+    install_complete = pyqtSignal(bool)  # 安装完成的信号
 
-    def __init__(self, github_user, repo_name, current_version, headers, parent=None):
+    def __init__(self, dmg_path, target_path, parent=None):
         super().__init__(parent)
-        self.github_user = github_user
-        self.repo_name = repo_name
-        self.current_version = current_version
-        self.headers = headers
+        self.dmg_path = dmg_path
+        self.target_path = target_path
 
-    def compare_versions(self, version1, version2):
-        """比较版本号"""
-        v1 = Version(version1.lstrip("v"))  # 去掉 'v' 前缀
-        v2 = Version(version2.lstrip("v"))
-        return v1 < v2
-    
     def run(self):
-        """执行更新检测"""
+        """在后台线程中执行 DMG 挂载和安装"""
         try:
-            url = f"https://api.github.com/repos/{self.github_user}/{self.repo_name}/releases/latest"
-            response = requests.get(url, headers=self.headers)
-            if response.status_code == 200:
-                release_info = response.json()
-                latest_version = release_info["tag_name"]  # 获取最新版本号
+            # 挂载 DMG 文件并解析输出以获取挂载点
+            mount_output = subprocess.check_output(["hdiutil", "attach", self.dmg_path]).decode("utf-8")
+            self.update_progress.emit(20)  # 进度更新，模拟值
 
-                # 获取当前操作系统和架构
-                system = platform.system().lower()
+            # 查找挂载点，通常位于输出的最后一列
+            mount_point = None
+            for line in mount_output.splitlines():
+                if "/Volumes/" in line:
+                    mount_point = line.split("\t")[-1]
+                    break
 
-                # 筛选适合当前系统的安装包
-                download_url = None
-                for asset in release_info["assets"]:
-                    if system in asset["name"].lower():
-                        download_url = asset["browser_download_url"]
-                        break
+            if not mount_point:
+                self.install_complete.emit(False)
+                return
 
-                if not download_url:
-                    return
+            # 列出挂载点的内容，查看实际的文件和目录
+            app_path = None
+            for item in os.listdir(mount_point):
+                if item.endswith(".app"):
+                    app_path = os.path.join(mount_point, item)
+                    break
 
-                # 版本比较
-                if self.compare_versions(self.current_version, latest_version):
-                    self.update_check_complete.emit(True, latest_version, download_url)
-                else:
-                    return
-            else:
-                self.update_check_complete.emit(False, f"无法获取更新信息，状态码：{response.status_code}", "")
+            if not app_path:
+                self.install_complete.emit(False)
+                return
+
+            # 如果目标路径下已经存在 GEN.app，先删除
+            if os.path.exists(self.target_path):
+                shutil.rmtree(self.target_path)  # 删除目标路径
+                self.update_progress.emit(50)  # 进度更新，模拟值
+
+            # 复制新的应用到 /Applications
+            shutil.copytree(app_path, self.target_path)
+            self.update_progress.emit(80)  # 进度更新，模拟值
+
+            # 卸载挂载点
+            subprocess.run(["hdiutil", "detach", mount_point], check=True)
+            self.update_progress.emit(100)  # 进度更新，模拟值
+
+            self.install_complete.emit(True)  # 通知安装完成
+
+        except subprocess.CalledProcessError as e:
+            self.install_complete.emit(False)
+            print(f"DMG 安装过程中出错：{e}")
         except Exception as e:
-            self.update_check_complete.emit(False, f"检测更新失败", "")
-
-
+            self.install_complete.emit(False)
+            print(f"其他错误：{e}")
 class AutoUpdater:
-    def __init__(self, github_user, repo_name, current_version, parent=None):
-        """
-        初始化更新器
-        :param github_user: GitHub 用户名
-        :param repo_name: 仓库名
-        :param current_version: 当前版本号（如 '1.0.0'）
-        :param parent: 父窗口，用于显示对话框（PyQt）
-        """
-        self.github_user = github_user
-        self.repo_name = repo_name
-        self.current_version = current_version
-        self.download_path = None
+    """自动更新管理器"""
+
+    def __init__(self,parent=None):
         self.parent = parent
-        self.headers = {
-            "authorization": f"bearer {cfg.get(cfg.updateToken)}",
-            "Accept": "application/json",  # 指定响应数据格式为 JSON
-            "User-Agent": "Awesome-Octocat-App"
-        }
+        self.download_thread = None
         self.cmb = CustomMessageBox(self.parent)
 
-    def check_for_update(self):
-        """启动检查更新的线程"""
-        self.update_check_thread = UpdateCheckThread(self.github_user, self.repo_name, self.current_version, self.headers, self.parent)
-        self.update_check_thread.update_check_complete.connect(self.handle_update_check_result)
+    def check_for_updates(self):
+        """启动更新检测线程"""
+        self.update_check_thread = UpdateCheckThread(
+           self.parent
+        )
         self.update_check_thread.start()
-        
-    def handle_update_check_result(self, success, message, download_url):
-        """处理更新检查的结果"""
-        if success:
-            self.ask_for_update(download_url)  # 传递下载链接
-        else:
-            createMessage(self.parent, "警告", message, 2)
-
-    def ask_for_update(self, download_url):
+        self.update_check_thread.update_check_complete.connect(self.ask_for_update)
+ 
+    def ask_for_update(self, success, latest_version, download_url):
         """询问用户是否进行更新"""
-        w = MessageBox("发现新版本", f"有新版本是否更新？", self.parent)
-
-        if w.exec():
-            self.download_new_version(download_url)
-        else:
-            return
-
-    def get_user_download_directory(self):
-        """获取当前操作系统的下载文件夹路径"""
-        user_home = os.path.expanduser("~")  # 获取用户主目录
-        system = platform.system().lower()
-
-        if system == "windows":
-            # Windows 系统，下载文件夹通常在用户目录下的 "Downloads" 文件夹
-            return os.path.join(user_home, "Downloads")
-        elif system == "darwin" or system == "linux":
-            # macOS 和 Linux 系统，下载文件夹通常在用户目录下的 "Downloads" 文件夹
-            return os.path.join(user_home, "Downloads")
-        else:
-            createMessage(self.parent, "下载失败", f"不支持的操作系统: {system}", 0)
-            return None
-        
-    def download_new_version(self, url):
-        """下载新版本文件"""
-        try:
-            # 获取操作系统类型
-            system = platform.system().lower()
+        if success:
+            w = MessageBox(f"发现新版本 {latest_version}", f"有新版本是否更新？", self.parent)
+            if w.exec():
+                self.start_download(download_url)
+            else:
+                return
             
-            # 如果是 macOS
-            if system == "darwin":  # macOS
-                self.perform_update(url)
+    def start_download(self, download_url):
+        """启动下载线程"""
+        try:
+            self.cmb.show()
+            system = platform.system().lower()
+            if system == "darwin":
+                download_path = os.path.join("/tmp", "GEN-darwin.dmg")
+            elif system == "windows":
+                download_path = os.path.join(self.get_user_download_directory(), "GEN-windows.exe")
+            else:
+                createMessage(self.parent, "更新失败", "当前系统不支持自动更新", 0)
+                return
 
-            elif system == "windows":  # Windows
-                self.cmb.show()
-                # 获取用户的下载目录
-                download_dir = self.get_user_download_directory()
-                if not download_dir:
-                    return
-                system = platform.system().lower()
-                # 目标下载路径
-                download_path = os.path.join(download_dir, f"GEN-{system}.exe")
-                # 创建并启动后台下载线程
-                self.download_thread = DownloadThread(url, download_path,self.parent)
-                self.download_thread.update_progress.connect(self.update_progress)  # 连接信号
-                self.download_thread.download_complete.connect(self.download_complete)  # 连接下载完成信号
-                self.download_thread.start()
-
+            self.download_thread = DownloadThread(download_url, download_path, self.parent)
+            self.download_thread.update_progress.connect(self.update_progress)  # 连接信号
+            self.download_thread.download_complete.connect(self.on_download_complete)
+            self.download_thread.start()
         except Exception as e:
-            createMessage(self.parent, "下载失败", "请稍后重试", 0)
+            createMessage(self.parent, "启动失败", f"更新启动失败：{e}", 0)
 
     def update_progress(self, progress):
         if self.cmb:
             """更新进度条"""
             self.cmb.ring.setValue(progress)
-                
 
-    def download_complete(self, download_path):
-        """处理下载完成"""
+    def on_download_complete(self, download_path):
+        """处理下载完成事件"""
         if download_path == "error":
-            createMessage(self.parent, "下载失败", "下载失败，请稍后重试。", 0)
-            return
-        self.cmb.deleteLater()  # 删除进度条
-        self.perform_update(download_path)
-
-    def perform_update(self, download_path):
-        """执行自动更新"""
-        try:
+            createMessage(self.parent, "下载失败", "下载失败，请稍后重试", 0)
+        else:
             system = platform.system().lower()
+            if system == "darwin":
+                self.install_on_mac(download_path)
+            elif system == "windows":
+                self.install_on_windows(download_path)
 
-            if system == "darwin":  # macOS
-                createMessage(self.parent, "提醒", "打开浏览器以继续安装", 3)
-                self.open_browser(download_path)
-                return
-
-            elif system == "windows":  # Windows
-                # 执行 Windows 自动更新过程
-                createMessage(self.parent, "更新中", f"准备执行安装程序：{download_path}", 1)
-
-                # 执行安装程序
-                subprocess.Popen([download_path])  # 自动执行安装程序
-                sys.exit(0)
-
-        except Exception as e:
-            createMessage(self.parent, "下载失败", f"执行更新时出错：{e}", 0)
-
-    def open_browser(self, url):
-        """打开浏览器"""
+    def install_on_mac(self, dmg_path):
+            """挂载 DMG 并自动更新"""
+            # 这里使用后台线程处理挂载和安装
+            target_path = "/Applications/GEN.app"
+            self.mount_and_install_thread = MountAndInstallThread(dmg_path, target_path, self.parent)
+            self.mount_and_install_thread.update_progress.connect(self.update_progress)
+            self.mount_and_install_thread.install_complete.connect(self.install_complete_mac)
+            self.mount_and_install_thread.start()
+            
+    def install_on_windows(self, exe_path):
+        """Windows 自动安装"""
+        createMessage(self.parent, "更新中", f"准备执行安装程序：{exe_path}", 1)
         try:
-            webbrowser.open(url)
+            subprocess.Popen([exe_path])  # 自动执行安装程序
+            createMessage(self.parent, "更新成功", "安装程序已启动", 3)
+            sys.exit(0)
         except Exception as e:
-            createMessage(self.parent, "打开浏览器失败", f"无法打开浏览器：{e}", 0)
+            createMessage(self.parent, "更新失败", f"启动安装程序失败：{e}", 0)
+
+    def get_user_download_directory(self):
+        """获取用户下载目录"""
+        return os.path.expanduser("~/Downloads")
+    
+    def install_complete_mac(self, success):
+        """安装完成后的处理（macOS）"""
+        if success:
+            self.close_existing_app("GEN")
+            createMessage(self.parent, "更新成功", "应用程序已成功更新！请重启应用", 3)
+        else:
+            createMessage(self.parent, "更新失败", "更新过程中出现问题，请稍后重试。", 0)
+        self.cmb.hide()  # 删除进度条
+
+    def close_existing_app(self, app_name):
+        """关闭正在运行的应用"""
+        try:
+            # 使用 ps 命令查找进程，并获取进程 PID
+            ps_output = subprocess.check_output(["ps", "aux"])
+            # 搜索包含应用名的进程行
+            process_lines = [line for line in ps_output.decode().splitlines() if app_name in line]
+            
+            if process_lines:
+                # 提取 PID
+                for line in process_lines:
+                    pid = line.split()[1]  # 获取进程的 PID
+                    subprocess.run(["kill", "-9", pid], check=True)  # 强制终止进程
+                print(f"已强制关闭 {app_name} 应用")
+            else:
+                print(f"{app_name} 没有在运行")
+
+        except subprocess.CalledProcessError as e:
+            print(f"关闭应用失败: {e}")
+        except Exception as e:
+            print(f"其他错误: {e}")

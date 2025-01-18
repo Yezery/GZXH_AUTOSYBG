@@ -5,13 +5,13 @@ a = Analysis(
     ['app/main.py'],
     pathex=[],
     binaries=[],
-    datas=[('./source/logo.png', '.'), ('./source/config/config.json', 'config')],
+    datas=[('./app/resource/', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
-    noarchive=True,
+    noarchive=False,
     optimize=0,
 )
 pyz = PYZ(a.pure)
@@ -19,10 +19,10 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
-    [('v', None, 'OPTION')],
+    [],
     exclude_binaries=True,
     name='GEN',
-    debug=True,
+    debug=False,
     bootloader_ignore_signals=False,
     strip=True,
     upx=True,
@@ -32,7 +32,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['source/logo.icns'],
+    icon=['packResource/logo.icns'],
 )
 coll = COLLECT(
     exe,
@@ -46,6 +46,6 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='GEN.app',
-    icon='./source/logo.icns',
+    icon='./packResource/logo.icns',
     bundle_identifier=None,
 )
