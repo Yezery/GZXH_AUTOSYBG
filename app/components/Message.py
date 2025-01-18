@@ -1,6 +1,6 @@
 from qfluentwidgets import InfoBar,InfoBarPosition
 
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 
 def createMessage(parent=None,title="",message="",_type=3):
         match _type:
@@ -8,7 +8,7 @@ def createMessage(parent=None,title="",message="",_type=3):
                 InfoBar.error(
                     title=title,
                     content=message,
-                    orient=Qt.Horizontal,
+                    orient=Qt.Orientation.Horizontal,
                     isClosable=True,
                     position=InfoBarPosition.TOP_RIGHT,
                     duration=2000,
@@ -18,7 +18,7 @@ def createMessage(parent=None,title="",message="",_type=3):
                 InfoBar.success(
                     title=title,
                     content=message,
-                    orient=Qt.Horizontal,
+                    orient=Qt.Orientation.Horizontal,
                     isClosable=True,
                     position=InfoBarPosition.TOP_RIGHT,
                     duration=2000,
@@ -28,7 +28,7 @@ def createMessage(parent=None,title="",message="",_type=3):
                 InfoBar.warning(
                     title=title,
                     content=message,
-                    orient=Qt.Horizontal,
+                    orient=Qt.Orientation.Horizontal,
                     isClosable=True,
                     position=InfoBarPosition.TOP_RIGHT,
                     duration=2000,
@@ -38,7 +38,7 @@ def createMessage(parent=None,title="",message="",_type=3):
                 InfoBar.info(
                     title=title,
                     content=message,
-                    orient=Qt.Horizontal,
+                    orient=Qt.Orientation.Horizontal,
                     isClosable=True,
                     position=InfoBarPosition.TOP_RIGHT,
                     duration=2000,

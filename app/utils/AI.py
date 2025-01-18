@@ -1,6 +1,6 @@
 import requests
 import json
-from PyQt5.QtCore import pyqtSignal,QThread
+from PyQt6.QtCore import pyqtSignal,QThread
 
 class QFAI:
     def __init__(self, API_KEY, SECRET_KEY):

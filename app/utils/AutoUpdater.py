@@ -6,7 +6,7 @@ import sys
 import requests
 import subprocess
 from packaging.version import Version
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from qfluentwidgets import MessageBox, ProgressRing, MessageBoxBase
 from components.Message import createMessage
 from common.config import VERSION
@@ -30,7 +30,7 @@ class CustomMessageBox(MessageBoxBase):
         # 将组件添加到布局中
         self.viewLayout.deleteLater()
         self.vBoxLayout.setContentsMargins(40, 40, 40, 40)
-        self.vBoxLayout.setAlignment(Qt.AlignCenter)
+        self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.vBoxLayout.addWidget(self.ring)
         self.hide()
 

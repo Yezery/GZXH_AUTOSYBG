@@ -1,7 +1,7 @@
 from qfluentwidgets import TextEdit,CommandBar,Action
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
-from PyQt5.QtGui import QFont, QTextListFormat
-from PyQt5.QtCore import Qt
+from PyQt6.QtWidgets import QWidget, QVBoxLayout
+from PyQt6.QtGui import QFont, QTextListFormat
+from PyQt6.QtCore import Qt
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from qfluentwidgets import FluentIcon as FIF
@@ -135,21 +135,21 @@ class RichEdit(QWidget):
         """设置选中文本左对齐"""
         cursor = self.textEdit.textCursor()
         block_format = cursor.blockFormat()
-        block_format.setAlignment(Qt.AlignLeft)
+        block_format.setAlignment(Qt.AlignmentFlag.AlignLeft)
         cursor.mergeBlockFormat(block_format)
 
     def align_center(self):
         """设置选中文本居中对齐"""
         cursor = self.textEdit.textCursor()
         block_format = cursor.blockFormat()
-        block_format.setAlignment(Qt.AlignCenter)
+        block_format.setAlignment(Qt.AlignmentFlag.AlignCenter)
         cursor.mergeBlockFormat(block_format)
 
     def align_right(self):
         """设置选中文本右对齐"""
         cursor = self.textEdit.textCursor()
         block_format = cursor.blockFormat()
-        block_format.setAlignment(Qt.AlignRight)
+        block_format.setAlignment(Qt.AlignmentFlag.AlignRight)
         cursor.mergeBlockFormat(block_format)
 
     def save_to_word(self):
@@ -167,11 +167,11 @@ class RichEdit(QWidget):
             # 设置段落对齐方式
             block_format = block.blockFormat()
             alignment = block_format.alignment()
-            if alignment == Qt.AlignLeft:
+            if alignment == Qt.AlignmentFlag.AlignLeft:
                 paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            elif alignment in (Qt.AlignHCenter, Qt.AlignCenter):
+            elif alignment in (Qt.AlignHCenter, Qt.AlignmentFlag.AlignCenter):
                 paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            elif alignment == Qt.AlignRight:
+            elif alignment == Qt.AlignmentFlag.AlignRight:
                 paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
             else:
                 paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT  # 默认左对齐

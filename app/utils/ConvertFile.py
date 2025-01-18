@@ -1,6 +1,6 @@
 import io
 import requests
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt6.QtCore import QThread, pyqtSignal
 class ConvertFile:
     def __init__(self):
         self.ip = "https://convert.zivye.asia"

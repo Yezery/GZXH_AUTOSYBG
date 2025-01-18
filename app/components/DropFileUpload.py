@@ -1,7 +1,7 @@
 import os
-from PyQt5.QtWidgets import QVBoxLayout,QFileDialog
-from PyQt5.QtCore import QEvent,Qt,QPoint,pyqtSlot
-from PyQt5.QtGui import QDragEnterEvent
+from PyQt6.QtWidgets import QVBoxLayout,QFileDialog
+from PyQt6.QtCore import QEvent,Qt,QPoint,pyqtSlot
+from PyQt6.QtGui import QDragEnterEvent
 from docx import Document
 from docx.document import Document as DocumentObject
 from components.Message import createMessage
@@ -23,7 +23,7 @@ class DropFileUploadDOCX(CardWidget):
         self.stateTooltip = None
         # 主布局
         self.layout = QVBoxLayout(self)
-        self.layout.setAlignment(Qt.AlignTop)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.keywords = ["【实验目的】", "【实验内容】", "【实验要求】"]
 
@@ -44,7 +44,7 @@ class DropFileUploadDOCX(CardWidget):
             }
             """
         )
-        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.label)
 
         # 鼠标点击事件

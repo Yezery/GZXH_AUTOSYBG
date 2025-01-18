@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QHBoxLayout,QWidget
-from PyQt5.QtGui import QPixmap, QImage,QColor
-from PyQt5.QtCore import QTimer, Qt, QPoint
+from PyQt6.QtWidgets import QHBoxLayout,QWidget
+from PyQt6.QtGui import QPixmap, QImage,QColor
+from PyQt6.QtCore import QTimer, Qt, QPoint
 import requests
 from http.cookiejar import MozillaCookieJar
 from qrcode import QRCode
@@ -93,7 +93,7 @@ class BilibiliLogin(QWidget):
 
     def init_ui(self):
         self.layout = QHBoxLayout(self)
-        self.layout.setAlignment(Qt.AlignCenter)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.bqcmb = None
         # QR code image label
         self.label_image = ImageLabel(self)
@@ -227,7 +227,7 @@ class BilibiliLogin(QWidget):
         if w.exec():
             url = 'https://passport.bilibili.com/login/exit/v2'
             data = {'biliCSRF': self.extract_sessdata(self.temp_cookie)}
-            self.session.post(url, headers=self.headers, data=data)
+            self.session.positiont(url, headers=self.headers, data=data)
             with open(self.temp_cookie, 'w', encoding='utf-8') as file:
                 file.write('# Netscape HTTP Cookie File\n')
             self.update_ui(show_logout=False, show_login=True)

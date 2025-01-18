@@ -1,8 +1,8 @@
 import os
 import sys
 from qfluentwidgets import FluentIcon as FIF
-from PyQt5.QtWidgets import QFrame,QHBoxLayout,QApplication
-from PyQt5.QtCore import Qt,QSize,QTimer
+from PyQt6.QtWidgets import QFrame,QHBoxLayout,QApplication
+from PyQt6.QtCore import Qt,QSize,QTimer
 from qfluentwidgets import SubtitleLabel,setFont,MSFluentWindow,NavigationItemPosition,SplashScreen,TeachingTip,TeachingTipTailPosition,TeachingTipView,isDarkTheme
 from utils.AutoUpdater import AutoUpdater
 from view.router_interface import RouterInterface
@@ -12,6 +12,7 @@ from components.Icon import Icon
 from view.sybg_interface import SYBGInterface
 from view.setting_interface import SettingInterface
 from view.summary_interface import SummaryInterface
+from PyQt6.QtGui import QGuiApplication
 from common.config import cfg
 from common.signal_bus import signalBus
 class Widget(QFrame):
@@ -21,8 +22,8 @@ class Widget(QFrame):
         self.label = SubtitleLabel(text, self)
         self.hBoxLayout = QHBoxLayout(self)
         setFont(self.label, 24)
-        self.label.setAlignment(Qt.AlignCenter)
-        self.hBoxLayout.addWidget(self.label, 1, Qt.AlignCenter)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.hBoxLayout.addWidget(self.label, 1, Qt.AlignmentFlag.AlignCenter)
         self.setObjectName(text.replace(' ', '-'))
 
 class Window(MSFluentWindow):
@@ -80,7 +81,7 @@ class Window(MSFluentWindow):
         self.splashScreen = SplashScreen(self.windowIcon(), self)
         self.splashScreen.setIconSize(QSize(106, 106))
         self.splashScreen.raise_()
-        desktop = QApplication.desktop().availableGeometry()
+        desktop = QGuiApplication.primaryScreen().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w//2 - self.width()//2, h//2 - self.height()//2)
         self.show()
@@ -124,15 +125,15 @@ if __name__ == '__main__':
     if cfg.get(cfg.dpiScale) == "Auto":
         QApplication.setHighDpiScaleFactorRoundingPolicy(
             Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+        QApplication.setAttribute(Qt.ApplicationAttribute.AA_Use96Dpi)
     else:
         os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "0"
         os.environ["QT_SCALE_FACTOR"] = str(cfg.get(cfg.dpiScale))
 
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    QApplication.setAttribute(Qt.ApplicationAttribute.AA_Use96Dpi)
 
     app = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    app.setAttribute(Qt.ApplicationAttribute.AA_Use96Dpi)
     w = Window()
     w.setMinimumWidth(1000)
     w.setMinimumHeight(800)

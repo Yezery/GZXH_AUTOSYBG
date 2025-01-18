@@ -3,26 +3,21 @@
         "ApiKey": "gJBWXXcfaIyQ1AXs5b6gyZPp",
         "SecretKey": "VAOa3QhPlE3o1tybWHvKfyXiJ85rGYTl",
         "UpdateToken": "",
-        "UserCourse": "22数媒6",
-        "UserId": "22054181",
-        "UserName": "叶正睿"
+        "UserCourse": "",
+        "UserId": "",
+        "UserName": ""
     },
     "Material": {
         "AcrylicBlurRadius": 0
     },
     "Update": {
-        "CheckUpdateAtStartUp": true
-    },
-    "Folders": {
-        "Download": "/Users/yezery/Desktop"
+        "CheckUpdateAtStartUp": false
     },
     "MainWindow": {
-        "DpiScale": "Auto",
-        "Language": "zh_CN",
-        "MicaEnabled": false
+        "DpiScale": "Auto"
     },
     "QFluentWidgets": {
         "ThemeColor": "#ff000000",
-        "ThemeMode": "Dark"
+        "ThemeMode": "Auto"
     }
 }

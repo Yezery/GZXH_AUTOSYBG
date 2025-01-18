@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QVBoxLayout,QHBoxLayout,QApplication,QSizePolicy
-from PyQt5.QtCore import Qt,pyqtSlot
+from PyQt6.QtWidgets import QVBoxLayout,QHBoxLayout,QApplication,QSizePolicy
+from PyQt6.QtCore import Qt,pyqtSlot
 from qfluentwidgets import TextEdit,PrimaryPushButton,PushButton,pyqtSignal
 from view.router_interface import RouterInterface
 from components.DropFileUpload import DropFileUploadDOCX
@@ -15,7 +15,7 @@ class SummaryInterface(RouterInterface):
 
         # 主布局
         main_layout = QVBoxLayout()
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         main_layout.setContentsMargins(10, 10, 10, 10)
 
         # 上传文件部分（水平布局）
@@ -32,14 +32,14 @@ class SummaryInterface(RouterInterface):
             else:
                 self.upload_input.deleteLater()
           
-        # self.upload_input.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-        # upload_layout.setAlignment(self.upload_input, Qt.AlignLeft)
+        # self.upload_input.setSizePolicy(SizePolicy.Policy.Preferred, SizePolicy.Policy.Fixed)
+        # upload_layout.setAlignment(self.upload_input, Qt.AlignmentFlag.AlignLeft)
 
 
         # 调整大小策略和高度
-        # upload_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        # upload_label.setSizePolicy(SizePolicy.Policy.Fixed, SizePolicy.Policy.Fixed)
         # upload_label.setFixedHeight(30)
-        self.upload_input.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.upload_input.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         # self.upload_input.setMinimumHeight(30)
 
         # upload_layout.addWidget(upload_label)
@@ -47,14 +47,14 @@ class SummaryInterface(RouterInterface):
 
         # AI 心得部分（垂直布局）
         summary_layout = QVBoxLayout()
-        summary_layout.setAlignment(Qt.AlignTop)
+        summary_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         # summary_label = BodyLabel("AI 心得：")
         self.summary_text = TextEdit()
         # self.summary_text.setFixedHeight(300)
         self.summary_text.setPlaceholderText("在此修改或编辑 AI 总结的内容 ✦")
 
         # 调整大小策略
-        # summary_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        # summary_label.setSizePolicy(SizePolicy.Policy.Fixed, SizePolicy.Policy.Fixed)
         # summary_label.setFixedHeight(30)
 
         # summary_layout.addWidget(summary_label)
@@ -67,8 +67,8 @@ class SummaryInterface(RouterInterface):
         self.submit_button = PrimaryPushButton("生成")
 
         # # 调整按钮的大小策略
-        # self.copy_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        # self.submit_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        # self.copy_button.setSizePolicy(SizePolicy.Policy.Fixed, SizePolicy.Policy.Fixed)
+        # self.submit_button.setSizePolicy(SizePolicy.Policy.Fixed, SizePolicy.Policy.Fixed)
 
         button_layout.addWidget(self.copy_button)
         button_layout.addWidget(self.submit_button)

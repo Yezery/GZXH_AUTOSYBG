@@ -1,6 +1,6 @@
 from itertools import groupby
 import platform
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt6.QtCore import QThread, pyqtSignal
 from yt_dlp import YoutubeDL
 from common.config import cfg
 

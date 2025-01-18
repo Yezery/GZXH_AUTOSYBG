@@ -1,12 +1,12 @@
 from qfluentwidgets import SettingCard,LineEdit
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 from common.config import cfg
 # class NameCard(SettingCard):    
 
 #     def __init__(self, title,parent=None):
 #         super().__init__(FIF.DICTIONARY, title,cfg.get(cfg.userName), parent)
 #         self.nameEdit = LineEdit(self)
-#         self.hBoxLayout.addWidget(self.nameEdit, 0, Qt.AlignRight)
+#         self.hBoxLayout.addWidget(self.nameEdit, 0, Qt.AlignmentFlag.AlignRight)
 #         self.hBoxLayout.addSpacing(16)
 #         self.nameEdit.setText(cfg.get(cfg.userName))
 #         self.nameEdit.setPlaceholderText("请输入姓名")
@@ -26,7 +26,7 @@ from common.config import cfg
 #     def __init__(self,title, parent=None):
 #         super().__init__(FIF.FINGERPRINT, title, cfg.get(cfg.userId), parent)
 #         self.idEdit = LineEdit(self)
-#         self.hBoxLayout.addWidget(self.idEdit, 0, Qt.AlignRight)
+#         self.hBoxLayout.addWidget(self.idEdit, 0, Qt.AlignmentFlag.AlignRight)
 #         self.hBoxLayout.addSpacing(16)
 #         self.idEdit.setText(cfg.get(cfg.userId))
 #         self.idEdit.setPlaceholderText("请输入学号")
@@ -46,7 +46,7 @@ from common.config import cfg
 #     def __init__(self,title, parent=None):
 #         super().__init__(FIF.CERTIFICATE, title, cfg.get(cfg.userCourse), parent)
 #         self.courseEdit = LineEdit(self)
-#         self.hBoxLayout.addWidget(self.courseEdit, 0, Qt.AlignRight)
+#         self.hBoxLayout.addWidget(self.courseEdit, 0, Qt.AlignmentFlag.AlignRight)
 #         self.hBoxLayout.addSpacing(16)
 #         self.courseEdit.setText(cfg.get(cfg.userCourse))
 #         self.courseEdit.setPlaceholderText("请输入学号")
@@ -74,7 +74,7 @@ class CoustomCard(SettingCard):
         super().__init__(icon, title, cfg.get(config_key), parent)
         self.config_key = config_key
         self.edit = LineEdit(self)
-        self.hBoxLayout.addWidget(self.edit, 0, Qt.AlignRight)
+        self.hBoxLayout.addWidget(self.edit, 0, Qt.AlignmentFlag.AlignRight)
         self.hBoxLayout.addSpacing(16)
         self.edit.setText(cfg.get(config_key))
         self.edit.setPlaceholderText(placeholder_text)

@@ -1,26 +1,26 @@
 import os
 import re
-from PyQt5.QtCore import Qt,QPoint,QEasingCurve,QUrl
-from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout,QWidget,QFileDialog,QTableWidgetItem,QTableWidget
+from PyQt6.QtCore import Qt,QPoint,QEasingCurve,QUrl
+from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout,QWidget,QFileDialog,QTableWidgetItem,QTableWidget
 from qfluentwidgets import SmoothScrollArea,LineEdit,PrimaryPushButton,CaptionLabel,InfoBar,InfoBarPosition,FluentIcon,PushButton,TableWidget,BodyLabel,SwitchButton,StateToolTip,FlowLayout,MaskDialogBase,ImageLabel,CommandBarView,Flyout,Action,FlyoutAnimationType,MessageBox,CardWidget
 from qfluentwidgets.multimedia import VideoWidget
 from qfluentwidgets import FluentIcon as FIF
-from PyQt5.QtGui import QPixmap,QImage
-from PyQt5.QtWidgets import QVBoxLayout,QHBoxLayout,QSizePolicy
+from PyQt6.QtGui import QPixmap,QImage
+from PyQt6.QtWidgets import QVBoxLayout,QHBoxLayout,QSizePolicy
 from common.config import cfg
 import cv2
 from view.router_interface import RouterInterface
 from components.video.bilibiliLogin import BilibiliLogin
 from components.video.videoDownloader import get_downloader
 
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 
 class MoreTableFrame(TableWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parentObject = parent
-        self.setEditTriggers(QTableWidget.NoEditTriggers)  # 禁用编辑
+        self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)  # 禁用编辑
         
         self.verticalHeader().hide()  # 隐藏垂直头部
         self.setBorderRadius(8)  # 设置圆角
@@ -56,7 +56,7 @@ class MoreTableFrame(TableWidget):
             download_button = PushButton("下载")
             download_button_row = QWidget()
             download_button_row.setLayout(QHBoxLayout())
-            download_button_row.layout().setAlignment(Qt.AlignCenter)
+            download_button_row.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
             download_button_row.layout().setContentsMargins(0, 0, 0, 0)
             download_button_row.layout().addWidget(download_button)
             
@@ -69,12 +69,12 @@ class MoreTableFrame(TableWidget):
     def on_download_button_clicked(self):
         # 获取点击按钮所在行的索引
         button = self.sender()  # 获取发送信号的对象（即按钮）
-        row = self.indexAt(button.parent().pos()).row()  # 获取该按钮所在的行索引
+        row = self.indexAt(button.parent().position()).row()  # 获取该按钮所在的行索引
         if self.parentObject.stateTooltip is not None:
             InfoBar.warning(
             title='警告',
             content="有任务在进行中，请等待任务完成后再进行下载",
-            orient=Qt.Horizontal,
+            orient=Qt.Orientation.Horizontal,
             isClosable=False,   # disable close button
             position=InfoBarPosition.BOTTOM,
             duration=2000,
@@ -91,7 +91,7 @@ class BestTableFrame(TableWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parentObject = parent
-        self.setEditTriggers(QTableWidget.NoEditTriggers)  # 禁用编辑
+        self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)  # 禁用编辑
         self.verticalHeader().hide()  # 隐藏垂直头部
         self.setBorderRadius(8)  # 设置圆角
         self.setBorderVisible(True)  # 显示边框
@@ -128,7 +128,7 @@ class BestTableFrame(TableWidget):
             download_button = PushButton("下载")
             download_button_row = QWidget()
             download_button_row.setLayout(QHBoxLayout())
-            download_button_row.layout().setAlignment(Qt.AlignCenter)
+            download_button_row.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
             download_button_row.layout().setContentsMargins(0, 0, 0, 0)
             download_button_row.layout().addWidget(download_button)
             
@@ -149,7 +149,7 @@ class BestTableFrame(TableWidget):
             InfoBar.warning(
             title='警告',
             content="有任务在进行中，请等待任务完成后再进行下载",
-            orient=Qt.Horizontal,
+            orient=Qt.Orientation.Horizontal,
             isClosable=False,   # disable close button
             position=InfoBarPosition.BOTTOM,
             duration=2000,
@@ -166,7 +166,7 @@ class VideoMessageBox(MaskDialogBase):
         super().__init__(parent)
         # 创建布局
         # self.setLayout() = QVBoxLayout(self)
-        self.layout().setAlignment(Qt.AlignCenter)
+        self.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout().setContentsMargins(0, 0, 0, 0)
         # VideoWidget
         self.videoWidget = VideoWidget(self)
@@ -179,12 +179,17 @@ class VideoMessageBox(MaskDialogBase):
     def mousePressEvent(self, event):
         """ 处理鼠标点击事件，点击对话框外部时关闭 """
         try:
-            if not self.videoWidget.geometry().contains(event.pos()):
+            # 将 event.position() 转换为 QPoint
+            mouse_pos = event.position().toPoint()
+
+            if not self.videoWidget.geometry().contains(mouse_pos):
                 self.close()  # 点击透明遮罩部分关闭对话框
             else:
                 super().mousePressEvent(event)
-        except:
+        except Exception as e:
+            print(f"Error: {e}")
             pass
+
 
     def resizeEvent(self, event):
         """ 窗口大小调整时手动设置 videoWidget 的位置 """
@@ -200,7 +205,7 @@ class VideoReusltItem(ImageLabel):
         super().__init__(parent)
         self.fileName = fileName
         self.setBorderRadius(6,6,6,6)
-        self.setAlignment(Qt.AlignCenter)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.clicked.connect(self.createCommandBarFlyout)
        # 获取视频封面并设置为图片
         thumbnail = self.get_video_thumbnail(f"{cfg.get(cfg.downloadFolder)}/{fileName}")
@@ -224,7 +229,7 @@ class VideoReusltItem(ImageLabel):
 
             # 转换为 QImage
             height, width, channel = frame_resized.shape
-            image = QImage(frame_resized.data, width, height, 3 * width, QImage.Format_RGB888)
+            image = QImage(frame_resized.data, width, height, 3 * width, QImage.Format.Format_RGB888)
             # 转换为 QPixmap
             pixmap = QPixmap.fromImage(image)
             return pixmap
@@ -251,7 +256,10 @@ class VideoReusltItem(ImageLabel):
         reply.yesButton.setText(self.tr('是'))
         reply.cancelButton.setText(self.tr('取消'))
         if reply.exec():
-            os.remove(f"{cfg.get(cfg.downloadFolder)}/{self.fileName}")
+            try:
+                os.remove(f"{cfg.get(cfg.downloadFolder)}/{self.fileName}")
+            except:
+                pass
             self.deleteLater()
             self.parent().flowLayout.removeWidget(self)
             self.parent().flowLayout.update()
@@ -265,7 +273,7 @@ class VideoResultWidget(QWidget):
         self.download_result_widget.setVisible(False)
 
         self.flowLayout = FlowLayout(self, needAni=True)
-        self.flowLayout.setAnimation(250, QEasingCurve.OutQuad)
+        self.flowLayout.setAnimation(250, QEasingCurve.Type.OutQuad)
         self.flowLayout.setContentsMargins(10, 10, 10, 10)
         self.refreshItem()
     
@@ -307,14 +315,14 @@ class VideoInterface(RouterInterface):
         
         # 创建左侧内容布局
         self.MoretableFrame = MoreTableFrame(self)
-        self.MoretableFrame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.MoretableFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.BestTableFrame = BestTableFrame(self)
-        self.BestTableFrame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.BestTableFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         # 将布局设置为left_widget的内容
         left_container = QWidget(self)
         left_layout = QVBoxLayout(left_container)
-        left_layout.setAlignment(Qt.AlignTop)
+        left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         left_container.setContentsMargins(10, 0, 10, 0)
         self.left_widget.setWidget(left_container)  # 设置可以滚动的区域
 
@@ -333,7 +341,7 @@ class VideoInterface(RouterInterface):
         self.videoResultWidget = VideoResultWidget(self)
         
         # self.right_layout = QVBoxLayout(self.right_widget)
-        # self.right_layout.setAlignment(Qt.AlignCenter)
+        # self.right_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # self.right_layout.addWidget(self.bilibiliLogin)
         self.savePath = CaptionLabel(f"{cfg.get(cfg.downloadFolder)}", self)
@@ -350,8 +358,8 @@ class VideoInterface(RouterInterface):
         self.tool_group = QWidget(self)
         self.tool_group.setLayout(QHBoxLayout())
         self.tool_group.layout().addWidget(self.more_switch)
-        self.saveBtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.savePath.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.saveBtn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.savePath.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.tool_group.layout().addWidget(self.savePath)
         self.tool_group.layout().addWidget(self.saveBtn)
         left_layout.addWidget(self.tool_group)
@@ -371,7 +379,7 @@ class VideoInterface(RouterInterface):
             icon=FluentIcon.PIN,
             title=self.tr('支持'),
             content=self.tr("只支持下载 Bilibili、YouTube 视频"),
-            orient=Qt.Horizontal,
+            orient=Qt.Orientation.Horizontal,
             isClosable=True,
             duration=-1,
             position=InfoBarPosition.BOTTOM_RIGHT,
@@ -427,18 +435,18 @@ class VideoInterface(RouterInterface):
     def __initLayout(self):
         # self.left_widget.setAutoFillBackground(True)
         self.left_widget.enableTransparentBackground()
-        self.left_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.left_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.left_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.left_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.left_widget.setViewportMargins(0, 0, 0, 0)
         self.left_widget.setWidgetResizable(True)
-        self.left_widget.setAlignment(Qt.AlignTop)
+        self.left_widget.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        # self.right_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        # self.right_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         # self.right_widget.setStyleSheet("background:transparent;border:none;")
-        # self.right_layout.setAlignment(Qt.AlignTop)
+        # self.right_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         # self.right_layout.setContentsMargins(0,0, 0, 0)
 
-        # self.bilibiliLogin.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        # self.bilibiliLogin.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         
     def select_save_path(self):
         """选择保存路径"""

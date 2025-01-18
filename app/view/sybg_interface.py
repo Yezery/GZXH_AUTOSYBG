@@ -1,7 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QDialog,QFileDialog,QSizePolicy
-from PyQt5.QtCore import QEasingCurve,Qt,QStandardPaths,QPoint,pyqtSlot,QRect,QTimer
-from PyQt5.QtGui import QFont
+from PyQt6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QDialog,QFileDialog,QSizePolicy
+from PyQt6.QtCore import QEasingCurve,Qt,QStandardPaths,QPoint,pyqtSlot,QRect,QTimer
+from PyQt6.QtGui import QFont
 from qfluentwidgets import ToolTipPosition,ToolTipFilter,ImageLabel,PrimaryPushButton,CardWidget,FlowLayout,BodyLabel,LineEdit,CommandBarView,Action,FlyoutAnimationType,Flyout,StateToolTip,SmoothScrollArea
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Inches, Pt
@@ -22,17 +22,17 @@ class ImageInputGroup(QWidget):
         self.setAcceptDrops(True)
         # 创建垂直布局
         self.setLayout(QVBoxLayout())
-        self.layout().setAlignment(Qt.AlignCenter)
+        self.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.adjustSize()
 
         if image_path:
             # 图片标签
             self.image_label_widget = QWidget(self)
             self.image_label_widget.setLayout(QVBoxLayout())
-            self.image_label_widget.layout().setAlignment(Qt.AlignCenter)
+            self.image_label_widget.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             self.image_label = ImageLabel(image_path)
-            self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            self.image_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             self.image_label.scaledToWidth(350)
             self.image_label.scaledToHeight(250)
             self.image_label_widget.layout().addWidget(self.image_label)
@@ -75,9 +75,9 @@ class ImageInputGroup(QWidget):
 
     def click_upload(self):
         file_dialog = QFileDialog(self)
-        file_dialog.setFileMode(QFileDialog.ExistingFiles)
+        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
         file_dialog.setNameFilters(["Image files (*.png *.jpg)"])
-        if file_dialog.exec_():
+        if file_dialog.exec():
             file_paths = file_dialog.selectedFiles()
             self.parentObject.insert_before_key(ImageInputGroup(file_paths[0],self.parentObject),file_paths[0],self)
         
@@ -121,7 +121,7 @@ class ImageInputGroup(QWidget):
 
         # 缩放图像并保持平滑
         zoomed_layout.addWidget(image_label)
-        zoomed_window.exec_()
+        zoomed_window.exec()
 
     def enterEvent(self, event):
         """鼠标进入时显示按钮"""
@@ -146,12 +146,12 @@ class DropFileUploadImages(CardWidget):
         self.setStyleSheet("QWidget{background:transparent;border:none;}")
         # 主布局 - 使用 FlowLayout 或其他布局（根据需求）
         self.layout = FlowLayout(self, needAni=True)
-        self.layout.setAnimation(250, QEasingCurve.OutQuad)
+        self.layout.setAnimation(250, QEasingCurve.Type.OutQuad)
 
         # 标签提示
         self.label = BodyLabel("拖拽文件 或 点击选择图片文件", self)
-        self.label.setAlignment(Qt.AlignCenter)  # 居中对齐文本
-        self.label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 居中对齐文本
+        self.label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         # 设置占位符的样式表
         self.label.setStyleSheet(
@@ -183,12 +183,12 @@ class DropFileUploadImages(CardWidget):
             self.label.setText("释放文件到此区域")
             
             # 获取当前拖动位置
-            drag_position = event.pos()
+            drag_position = event.position()
             
             # 遍历布局中的控件，检查是否鼠标进入了某个 ImageInputGroup
             for child in self.children():
                 if isinstance(child, ImageInputGroup):
-                    if child.rect().contains(child.mapFromParent(drag_position)):
+                    if child.rect().contains(child.mapFromParent(drag_position.toPoint())):
                         # 触发该控件的 enterEvent
                         child.enterEvent(event)
                         break
@@ -252,11 +252,11 @@ class DropFileUploadImages(CardWidget):
 
     def mousePressEvent(self, event):
         """鼠标点击事件，支持点击上传文件"""
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             file_dialog = QFileDialog(self)
-            file_dialog.setFileMode(QFileDialog.ExistingFiles)
+            file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
             file_dialog.setNameFilters(["Image files (*.png *.jpg)"])
-            if file_dialog.exec_():
+            if file_dialog.exec():
                 file_paths = file_dialog.selectedFiles()
                 self.add_image_groups(file_paths)
         if not self.input_image_map:
@@ -306,18 +306,18 @@ class ToolsButtonGroup(QWidget):
        # 按钮组
         self.button_group_widget = QWidget(self)
         self.button_group_layout = QHBoxLayout(self.button_group_widget)
-        self.button_group_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.button_group_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         
         # 清除全部按钮
         self.clear_button = PrimaryPushButton(FIF.DELETE,"清除全部", self)
         self.clear_button.setFixedWidth(165)
-        self.clear_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.clear_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
        
 
         # 添加无图描述按钮
         self.add_no_image_button = PrimaryPushButton(FIF.ADD,"添加无图描述", self)
         self.add_no_image_button.setFixedWidth(165)
-        self.add_no_image_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.add_no_image_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
        
 
         # 将按钮添加到按钮布局中
@@ -380,7 +380,7 @@ class FileButtonGroup(QWidget):
         Flyout.make(view, pos, self, FlyoutAnimationType.FADE_IN)
 
     def saveFile(self):
-        save_path = QFileDialog.getExistingDirectory(self,directory=QStandardPaths.writableLocation(QStandardPaths.DesktopLocation),caption= "选择保存路径")
+        save_path = QFileDialog.getExistingDirectory(self,directory=QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DesktopLocation),caption= "选择保存路径")
         parent = self.parent().parent().parent().parent().parent().parent().findChild(SYBGInterface)
         if save_path == "":
             createMessage(parent.right_scroll_area,"警告", "用户取消",2)
@@ -409,7 +409,7 @@ class ResultFile(CardWidget):
         self.flowlayout = FlowLayout(self, needAni=True)
 
         # Customize animation
-        self.flowlayout.setAnimation(250, QEasingCurve.OutQuad)
+        self.flowlayout.setAnimation(250, QEasingCurve.Type.OutQuad)
         self.setLayout(self.flowlayout)
         # 初始化文件按钮列表，用于管理已添加的按钮
         self.file_buttons_map = {}
@@ -449,7 +449,7 @@ class ProcessTask(CardWidget):
         self.setObjectName(text.replace(' ', '-'))
         self.layout = QVBoxLayout(self)
         self.doc = None
-        self.layout.setAlignment(Qt.AlignCenter)  # 确保布局内控件居中
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 确保布局内控件居中
         # 输入框
         self.docx_rename = LineEdit(self)
         self.docx_rename.installEventFilter(ToolTipFilter(self.docx_rename,showDelay=10,position=ToolTipPosition.BOTTOM))
@@ -536,11 +536,11 @@ class ProcessTask(CardWidget):
                     # 设置段落对齐方式
                     block_format = block.blockFormat()
                     alignment = block_format.alignment()
-                    if alignment == Qt.AlignLeft:
+                    if alignment == Qt.AlignmentFlag.AlignLeft:
                         text_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
-                    elif alignment in (Qt.AlignHCenter, Qt.AlignCenter):
+                    elif alignment in (Qt.AlignHCenter, Qt.AlignmentFlag.AlignCenter):
                         text_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    elif alignment == Qt.AlignRight:
+                    elif alignment == Qt.AlignmentFlag.AlignRight:
                         text_paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
                     else:
                         text_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT  # 默认左对齐
@@ -779,14 +779,14 @@ class SYBGInterface(RouterInterface):
 
     def __initLayout(self):
 
-        self.left_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.left_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.left_widget.setStyleSheet("background:transparent;border:none;")
-        self.left_layout.setAlignment(Qt.AlignTop)
+        self.left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.left_layout.setContentsMargins(0,0, 0, 0)
 
-        self.right_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.right_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.right_widget.setStyleSheet("background:transparent;border:none;")
-        self.right_layout.setAlignment(Qt.AlignTop)
+        self.right_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.right_layout.setContentsMargins(0,0, 0, 0)
         
         # self.summary_widget.setBorderRadius(10)
@@ -794,14 +794,14 @@ class SYBGInterface(RouterInterface):
 
         self.left_result_file_scroll_area.setAutoFillBackground(True)
         self.left_result_file_scroll_area.enableTransparentBackground()
-        self.left_result_file_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.left_result_file_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.left_result_file_scroll_area.setViewportMargins(0, 0, 0, 0)
         self.left_result_file_scroll_area.setWidgetResizable(True)
 
         self.right_scroll_area.enableTransparentBackground()
         self.right_scroll_area.setWidgetResizable(True)
 
-        self.result_file.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.result_file.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.tools_button_group.clear_button.clicked.connect(self.drop_upload.clear_all_image_groups)
         self.tools_button_group.add_no_image_button.clicked.connect(self.drop_upload.add_no_image_description)

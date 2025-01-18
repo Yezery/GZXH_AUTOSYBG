@@ -1,12 +1,12 @@
 
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, OptionsSettingCard, PrimaryPushSettingCard,
                             ExpandLayout, CustomColorSettingCard,setTheme, setThemeColor)
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import InfoBar
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QWidget
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtWidgets import QWidget
 
 from view.router_interface import RouterInterface
 from utils.AutoUpdater import AutoUpdater
@@ -92,8 +92,8 @@ from qfluentwidgets import FluentIcon as FIF
 #         self.bottomLayout.setSpacing(10)
 #         self.bottomLayout.setContentsMargins(24, 15, 24, 20)
 #         self.bottomLayout.addStretch(1)
-#         self.bottomLayout.addWidget(self.refreshButton, 0, Qt.AlignRight)
-#         self.bottomLayout.addWidget(self.compileButton, 0, Qt.AlignRight)
+#         self.bottomLayout.addWidget(self.refreshButton, 0, Qt.AlignmentFlag.AlignRight)
+#         self.bottomLayout.addWidget(self.compileButton, 0, Qt.AlignmentFlag.AlignRight)
 #         self.bottomLayout.setAlignment(Qt.AlignVCenter)
 #         self.setContentsMargins(16, 16, 16, 16)
 #         self.bottomLayout.addWidget(self.download)
@@ -283,7 +283,7 @@ class SettingInterface(RouterInterface):
 
     def __initWidget(self):
         self.resize(1000, 800)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 20, 0, 20)
         self.setWidget(self.scrollWidget)
         self.setWidgetResizable(True)

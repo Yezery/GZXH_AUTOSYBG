@@ -1,7 +1,7 @@
 # coding:utf-8
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QPixmap, QDesktopServices
-from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget, QHBoxLayout
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QPixmap, QDesktopServices
+from PyQt6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget, QHBoxLayout
 
 from qfluentwidgets import IconWidget, FluentIcon, TextWrap, SingleDirectionScrollArea
 from common.signal_bus import signalBus
@@ -41,7 +41,7 @@ class LinkCard(QFrame):
         self.vBoxLayout.addWidget(self.titleLabel)
         self.vBoxLayout.addSpacing(8)
         self.vBoxLayout.addWidget(self.contentLabel)
-        self.vBoxLayout.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.urlWidget.move(170, 192)
 
         self.titleLabel.setObjectName('titleLabel')
@@ -51,18 +51,18 @@ class LinkCardView(SingleDirectionScrollArea):
     """ Link card view """
 
     def __init__(self, parent=None):
-        super().__init__(parent, Qt.Horizontal)
+        super().__init__(parent, Qt.Orientation.Horizontal)
         self.view = QWidget(self)
         self.hBoxLayout = QHBoxLayout(self.view)
 
         self.hBoxLayout.setContentsMargins(36, 0, 0, 0)
         self.hBoxLayout.setSpacing(12)
-        self.hBoxLayout.setAlignment(Qt.AlignLeft)
+        self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         self.setWidget(self.view)
         self.setWidgetResizable(True)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         self.view.setObjectName('view')
         StyleSheet.LINK_CARD.apply(self)
@@ -70,4 +70,4 @@ class LinkCardView(SingleDirectionScrollArea):
     def addCard(self, icon, title, content, routeKey, index):
         """ add link card """
         card = LinkCard(icon, title, content, routeKey, index, self.view)
-        self.hBoxLayout.addWidget(card, 0, Qt.AlignLeft)
+        self.hBoxLayout.addWidget(card, 0, Qt.AlignmentFlag.AlignLeft)
