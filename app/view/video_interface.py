@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 from PyQt6.QtCore import Qt,QPoint,QEasingCurve,QUrl
 from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout,QWidget,QFileDialog,QTableWidgetItem,QTableWidget
@@ -6,6 +7,7 @@ from qfluentwidgets import SmoothScrollArea,LineEdit,PrimaryPushButton,CaptionLa
 from qfluentwidgets.multimedia import VideoWidget
 from qfluentwidgets import FluentIcon as FIF
 from PyQt6.QtWidgets import QVBoxLayout,QHBoxLayout,QSizePolicy
+from PyQt6.QtGui import QDesktopServices
 from common.config import cfg
 from view.router_interface import RouterInterface
 from components.video.bilibiliLogin import BilibiliLogin
@@ -208,9 +210,46 @@ class VideoReusltItem(CardWidget):
     def showVideoDialog(self):
         w = VideoMessageBox(self.window(),self.fileName)
         w.exec()
+    
+    def showFileLocation(self):
+        # 构造文件路径
+        file_path = f"{cfg.get(cfg.downloadFolder)}/{self.fileName}"
+
+        try:
+            if platform.system() == "Windows":
+                # Windows: 使用 explorer 打开文件并选中
+                os.startfile(f'/select,"{file_path}"')
+
+            elif platform.system() == "Darwin":
+                # macOS: 使用 open 命令并选中文件
+                os.system(f'open -R "{file_path}"')
+
+            elif platform.system() == "Linux":
+                # Linux: 使用 file manager (例如 nautilus) 打开文件并选中
+                folder_path = os.path.dirname(file_path)
+                os.system(f'xdg-open "{folder_path}"')
+            else:
+                # 其他系统：作为回退，直接打开文件夹
+                folder_path = os.path.dirname(file_path)
+                QDesktopServices.openUrl(QUrl.fromLocalFile(folder_path))
+
+        except Exception as e:
+            print(f"无法打开文件所在位置: {e}")
+
+    def showVideoBySystem(self):
+        # 构造文件夹路径
+        file_path = f"{cfg.get(cfg.downloadFolder)}/{self.fileName}"
+
+        try:
+            # 打开文件所在的文件夹
+            QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
+        except Exception as e:
+            print(f"无法打开文件夹: {e}")
     def createCommandBarFlyout(self):
         menu = RoundMenu(parent=self)
-        menu.addAction(Action(FIF.VIEW, self.tr('查看视频'), triggered=self.showVideoDialog))
+        menu.addAction(Action(FIF.VIEW, self.tr('查看视频(软件)'), triggered=self.showVideoDialog))
+        menu.addAction(Action(FIF.VIEW, self.tr('查看视频'), triggered=self.showVideoBySystem))
+        menu.addAction(Action(FIF.FOLDER, self.tr('文件位置'), triggered=self.showFileLocation))
         menu.addAction(Action(FIF.DELETE, self.tr('删除视频'), triggered=self.deleteVideo))
         x = self.width()  # 获取当前组件的宽度
         pos = self.mapToGlobal(QPoint(x-60, -30))
