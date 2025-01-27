@@ -35,8 +35,8 @@ class MoreTableFrame(TableWidget):
         ]
 
         # 设置布局
-        layout = QVBoxLayout(self)
-        layout.addWidget(self)
+        # layout = QVBoxLayout(self)
+        # layout.addWidget(self)
         self.horizontalHeader().setStretchLastSection(True)
         
 
@@ -104,8 +104,8 @@ class BestTableFrame(TableWidget):
         ]
 
         # 设置布局
-        layout = QVBoxLayout(self)
-        layout.addWidget(self)
+        # layout = QVBoxLayout(self)
+        # layout.addWidget(self)
         self.horizontalHeader().setStretchLastSection(True)
 
         

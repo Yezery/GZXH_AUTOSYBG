@@ -1,23 +1,23 @@
 {
-    "User": {
-        "ApiKey": "gJBWXXcfaIyQ1AXs5b6gyZPp",
-        "SecretKey": "VAOa3QhPlE3o1tybWHvKfyXiJ85rGYTl",
-        "UpdateToken": "",
-        "UserCourse": "",
-        "UserId": "",
-        "UserName": ""
-    },
     "Material": {
-        "AcrylicBlurRadius": 0
+        "AcrylicBlurRadius": 15
     },
     "Update": {
         "CheckUpdateAtStartUp": false
+    },
+    "Folders": {
+        "Download": "/Users/yezery/Desktop"
     },
     "MainWindow": {
         "DpiScale": "Auto"
     },
     "QFluentWidgets": {
-        "ThemeColor": "#ff000000",
+        "ThemeColor": "#ffffffff",
         "ThemeMode": "Auto"
+    },
+    "User": {
+        "UserCourse": "",
+        "UserId": "",
+        "UserName": ""
     }
 }

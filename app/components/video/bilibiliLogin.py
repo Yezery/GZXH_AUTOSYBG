@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QHBoxLayout,QWidget
 from PyQt6.QtGui import QPixmap, QImage,QColor
-from PyQt6.QtCore import QTimer, Qt, QPoint
+from PyQt6.QtCore import QTimer, Qt, QPoint,QThread,pyqtSignal
 import requests
 from http.cookiejar import MozillaCookieJar
 from qrcode import QRCode
@@ -9,6 +9,31 @@ from os import path
 from qfluentwidgets import ImageLabel, PushButton, MessageBox, BodyLabel,MessageBoxBase,RoundMenu,TransparentPushButton,AvatarWidget,CaptionLabel,isDarkTheme
 from common.config import cfg
 import re
+
+class LoginWorker(QThread):
+    login_success = pyqtSignal(dict)  # 登录成功信号，传递用户数据
+    login_failed = pyqtSignal(str)    # 登录失败信号，传递错误信息
+
+    def __init__(self, session, headers):
+        super().__init__()
+        self.session = session
+        self.headers = headers
+
+    def run(self):
+        try:
+            response = self.session.get(
+                "https://api.bilibili.com/x/web-interface/nav",
+                verify=False,
+                headers=self.headers,
+                timeout=10000
+            ).json()
+            if response['code'] == 0:
+                self.login_success.emit(response['data'])  # 发送成功信号
+            else:
+                self.login_failed.emit("登录状态检查失败")  # 发送失败信号
+        except Exception as e:
+            self.login_failed.emit(f"请求异常: {e}")  # 发送异常信号
+            
 class BilibiliQCodeMessageBox(MessageBoxBase):
     """ Custom message box """
 
@@ -134,28 +159,30 @@ class BilibiliLogin(QWidget):
             self.session.cookies.load(ignore_discard=True)
         except Exception as e:
             print(f"Error loading cookies: {e}")
-        self.is_login()
 
     def is_login(self):
-        try:
-            response = self.session.get("https://api.bilibili.com/x/web-interface/nav", verify=False, headers=self.headers,timeout=3000).json()
-            if response['code'] == 0:
-                self.vip_type = '普通会员'
-                if response['data']['vipType'] != 0 :
-                    self.vip_type = '大会员'
-                self.update_ui(show_logout=True, show_login=False)
-                self.show_user_avatar(response['data']['face'])
-                self.user_name=response['data']['uname']
-                self.login_status = True
-                self.bqcmb.cancelButton.click()
-                return True
-            else:
-                self.update_ui(show_logout=False, show_login=True)
-                self.login_status = False
-                return False
-        except Exception as e:
-            print(f"Error during login check: {e}")
-        return False
+        # 创建并启动线程
+        self.login_worker = LoginWorker(self.session, self.headers)
+        self.login_worker.login_success.connect(self.on_login_success)
+        self.login_worker.login_failed.connect(self.on_login_failed)
+        self.login_worker.start()
+    
+    def on_login_success(self, user_data):
+        """登录成功后的处理"""
+        self.vip_type = '普通会员'
+        if user_data['vipType'] != 0:
+            self.vip_type = '大会员'
+        self.update_ui(show_logout=True, show_login=False)
+        self.show_user_avatar(user_data['face'])
+        self.user_name = user_data['uname']
+        self.login_status = True
+        self.bqcmb.cancelButton.click()
+
+    def on_login_failed(self, error_msg):
+        """登录失败后的处理"""
+        print(f"登录失败: {error_msg}")
+        self.update_ui(show_logout=False, show_login=True)
+        self.login_status = False
 
     def scan_code(self):
         if self.login_status:
@@ -238,9 +265,10 @@ class BilibiliLogin(QWidget):
         self.btn_login.setVisible(show_login)
 
     def showBilibiliQCodeDialog(self):
-        self.bqcmb = BilibiliQCodeMessageBox(self.window(),self)
-        if self.bqcmb.exec():
-            pass
+        if not self.is_login():
+            self.bqcmb = BilibiliQCodeMessageBox(self.window(),self)
+            if self.bqcmb.exec():
+                pass
             # print(w.urlLineEdit.text())
     @staticmethod
     def extract_sessdata(filepath):

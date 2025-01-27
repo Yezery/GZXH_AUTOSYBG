@@ -5,3 +5,5 @@ pyinstaller
 qrcode
 yt_dlp
 PyQt6-Fluent-Widgets
+llama_cpp_python
+gguf

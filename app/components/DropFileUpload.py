@@ -1,6 +1,6 @@
 import os
 from PyQt6.QtWidgets import QVBoxLayout,QFileDialog
-from PyQt6.QtCore import QEvent,Qt,QPoint,pyqtSlot
+from PyQt6.QtCore import QEvent,Qt,QPoint,pyqtSlot,QThread
 from PyQt6.QtGui import QDragEnterEvent
 from docx import Document
 from docx.document import Document as DocumentObject
@@ -73,29 +73,24 @@ class DropFileUploadDOCX(CardWidget):
                 createMessage(self.parent, title="警告", message="仅支持上传一个文件", _type=2)
                 self.resetLabel()
                 return
-            if self.initDocx(self.file_paths):
-                file_names = [os.path.basename(path) for path in self.file_paths]  # 只获取文件名
-                self.label.setText(f"文件名称：".join(self.truncate_file_name(name) for name in file_names))
-                self.label.setStyleSheet(self.label.styleSheet() + "background-color: #f9f9f9;")
-                # self.request_ai()
-            else:
-                createMessage(self.parent, title="警告", message=f"文档中不符合要求", _type=2)
-                self.label.setText("文档中不符合要求")
+            self.updateDocx(self.file_paths)
                 
         else:
             self.label.setText("不支持的文件类型")
+
+    def updateDocx(self,file_paths):
+        if self.initDocx(file_paths):
+                file_names = [os.path.basename(path) for path in file_paths]  # 只获取文件名
+                self.label.setText(f"文件名称：".join(self.truncate_file_name(name) for name in file_names)) 
+        else:
+            createMessage(self.parent, title="警告", message=f"文档中不符合要求", _type=2)
+            self.label.setText("文档中不符合要求")
 
     def openFileDialog(self, event):
         """打开文件选择对话框"""
         self.file_paths, _ = QFileDialog.getOpenFileNames(self, "选择文件", filter="DOCX 文件 (*.docx);;所有文件 (*.*)")
         if self.file_paths:
-            if self.initDocx(self.file_paths):
-                file_names = [os.path.basename(path) for path in self.file_paths]  # 只获取文件名
-                self.label.setText(f"文件名称：".join(self.truncate_file_name(name) for name in file_names))
-                # self.request_ai()
-            else:
-                createMessage( self.parent,title="警告", message=f"文档中不符合要求", _type=2)
-                self.label.setText("文档中不符合要求")
+            self.updateDocx(self.file_paths)
         else:
             self.resetLabel()
 
@@ -123,6 +118,7 @@ class DropFileUploadDOCX(CardWidget):
                 if keyword not in content:
                     self.isUpload.emit(False)
                     return False
+            self.file_paths = file_paths
             self.doc = Document(file_paths[0])
             self.isUpload.emit(True) 
             self.docx_emit.emit(self.doc)
@@ -152,25 +148,26 @@ class DropFileUploadDOCX(CardWidget):
                         if end_keyword in para.text:
                             break
                 # 启动后台线程处理
-                self.worker = AI.QFAIWorker(
-                    api_key=cfg.get(cfg.apiKey),
-                    secret_key=cfg.get(cfg.secretKey),
+                self.worker = AI.summaryWorker(
                     doc_content=content.strip(),
                 )
+                self.worker.start()
+                self.worker.update_chunk.connect(self.update_summary)
                 self.worker.finished.connect(self.on_ai_success)
                 self.worker.error.connect(self.on_ai_error)
-                self.worker.start()
+                
            
-
-
     @pyqtSlot(str)
-    def on_ai_success(self, ai_summary):
+    def update_summary(self, chunk):
+        self.ai_summary_generated.emit(chunk)
+
+    def on_ai_success(self):
         """处理生成成功的信号"""
-        self.ai_summary_generated.emit(ai_summary)
         if self.stateTooltip:
             self.stateTooltip.setContent('生成完成啦 😆')
             self.stateTooltip.setState(True)
             self.stateTooltip = None
+        self.worker.stop()
 
     @pyqtSlot(str)
     def on_ai_error(self, error_message):

@@ -5,7 +5,7 @@ from PyQt6.QtCore import Qt
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from qfluentwidgets import FluentIcon as FIF
-
+from utils import AI
 class RichEdit(QWidget):
     """ Rich edit """
 
@@ -16,10 +16,10 @@ class RichEdit(QWidget):
         self.setFixedWidth(350)
         # 创建 TextEdit（富文本编辑器）
         self.textEdit = TextEdit(self)
-
+        
         # 添加控件到布局
         self.layout.addWidget(self.textEdit)
-
+        
          # 创建工具栏
         self.create_toolbar(image_path)
 
@@ -30,25 +30,30 @@ class RichEdit(QWidget):
         """创建工具栏并添加功能按钮"""
         self.toolbar = CommandBar(self)
 
-        # 加粗
-        bold_action = Action(FIF.FONT_INCREASE, self.tr('加粗'))
-        bold_action.triggered.connect(self.set_bold)
-        self.toolbar.addAction(bold_action)
+        # AI 重写
+        self.AI_action = Action(FIF.ROBOT, self.tr('AI 重写'))
+        self.AI_action.triggered.connect(self.AI_rewrite)
+        self.toolbar.addAction(self.AI_action)
+        
+        # # 加粗
+        # bold_action = Action(FIF.FONT_INCREASE, self.tr('加粗'))
+        # bold_action.triggered.connect(self.set_bold)
+        # self.toolbar.addAction(bold_action)
 
-        # 斜体
-        italic_action = Action(FIF.PENCIL_INK, self.tr('斜体'))
-        italic_action.triggered.connect(self.set_italic)
-        self.toolbar.addAction(italic_action)
+        # # 斜体
+        # italic_action = Action(FIF.PENCIL_INK, self.tr('斜体'))
+        # italic_action.triggered.connect(self.set_italic)
+        # self.toolbar.addAction(italic_action)
 
-        # 下划线
-        underline_action = Action(FIF.REMOVE, self.tr('下划线'))
-        underline_action.triggered.connect(self.set_underline)
-        self.toolbar.addAction(underline_action)
+        # # 下划线
+        # underline_action = Action(FIF.REMOVE, self.tr('下划线'))
+        # underline_action.triggered.connect(self.set_underline)
+        # self.toolbar.addAction(underline_action)
 
         self.toolbar.addSeparator()
         
         if image_path:
-            watch_action = Action(FIF.ZOOM_IN, self.tr('放大'))
+            watch_action = Action(FIF.ZOOM_IN, self.tr('查看图片'))
             watch_action.triggered.connect(lambda: self.parent.view_image(image_path))
             self.toolbar.addAction(watch_action)
 
@@ -118,6 +123,32 @@ class RichEdit(QWidget):
         fmt.setFontPointSize(int(size))  # 设置字号
         self.textEdit.mergeCurrentCharFormat(fmt)
 
+    def AI_rewrite(self):
+        """AI 重写"""
+        if self.textEdit.toPlainText() == "":
+            return
+        tmp = self.textEdit.toPlainText()
+        self.textEdit.setDisabled(True)
+        self.AI_action.setDisabled(True)
+        self.textEdit.setPlaceholderText("正在思考，请稍等...")
+        try:
+            self.rewriteWorker =AI.rewriteWorker(self.textEdit.toPlainText())
+            self.rewriteWorker.start()
+            self.rewriteWorker.update_chunk.connect(self.update_text)
+            self.rewriteWorker.finished.connect(self.finish_rewrite)
+        except Exception as e:
+            self.AI_action.setDisabled(False)
+            self.textEdit.setDisabled(False)
+            self.textEdit.setMarkdown(tmp)
+    def finish_rewrite(self):
+        self.textEdit.setPlaceholderText("请输入文本")
+        self.textEdit.setDisabled(False)
+        self.AI_action.setDisabled(False)
+        self.rewriteWorker.stop()
+    def update_text(self,chunk):
+        """更新文本"""
+        self.textEdit.setMarkdown(chunk)
+            # 将重写后的文本替换选中的文本
     # def update_font_size_combo(self):
     #     """更新字体大小选择框为选中文本的字号"""
     #     cursor = self.textEdit.textCursor()

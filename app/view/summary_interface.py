@@ -32,17 +32,8 @@ class SummaryInterface(RouterInterface):
             else:
                 self.upload_input.deleteLater()
           
-        # self.upload_input.setSizePolicy(SizePolicy.Policy.Preferred, SizePolicy.Policy.Fixed)
-        # upload_layout.setAlignment(self.upload_input, Qt.AlignmentFlag.AlignLeft)
 
-
-        # 调整大小策略和高度
-        # upload_label.setSizePolicy(SizePolicy.Policy.Fixed, SizePolicy.Policy.Fixed)
-        # upload_label.setFixedHeight(30)
         self.upload_input.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        # self.upload_input.setMinimumHeight(30)
-
-        # upload_layout.addWidget(upload_label)
         upload_layout.addWidget(self.upload_input, stretch=1)
 
         # AI 心得部分（垂直布局）
@@ -53,22 +44,14 @@ class SummaryInterface(RouterInterface):
         # self.summary_text.setFixedHeight(300)
         self.summary_text.setPlaceholderText("在此修改或编辑 AI 总结的内容 ✦")
 
-        # 调整大小策略
-        # summary_label.setSizePolicy(SizePolicy.Policy.Fixed, SizePolicy.Policy.Fixed)
-        # summary_label.setFixedHeight(30)
 
         # summary_layout.addWidget(summary_label)
         summary_layout.addWidget(self.summary_text)
 
         # 按钮部分（水平布局）
         button_layout = QHBoxLayout()
-        # button_layout.addStretch()
         self.copy_button = PushButton("复制")
         self.submit_button = PrimaryPushButton("生成")
-
-        # # 调整按钮的大小策略
-        # self.copy_button.setSizePolicy(SizePolicy.Policy.Fixed, SizePolicy.Policy.Fixed)
-        # self.submit_button.setSizePolicy(SizePolicy.Policy.Fixed, SizePolicy.Policy.Fixed)
 
         button_layout.addWidget(self.copy_button)
         button_layout.addWidget(self.submit_button)
@@ -100,7 +83,8 @@ class SummaryInterface(RouterInterface):
     @pyqtSlot(str)
     def update_summary(self, summary):
         """更新 AI 总结内容"""
-        self.summary_text.setText(summary)
+        self.summary_text.setMarkdown(summary)
+        self.summary_text.ensureCursorVisible()
         self.submit_button.setDisabled(False)
         
         

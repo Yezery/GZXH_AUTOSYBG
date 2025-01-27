@@ -12,7 +12,7 @@ from qfluentwidgets import (qconfig, QConfig, ConfigItem, OptionsConfigItem, Boo
 
 YEAR = 2025
 AUTHOR = "ZivYE"
-VERSION = "V 1.3.2"
+VERSION = "V 2.0.0"
 HELP_URL = "https://github.com/yezery/GZXH_AUTOSYBG"
 # REPO_URL = "https://github.com/zhiyiYo/PyQt-Fluent-Widgets"
 FEEDBACK_URL = "https://github.com/yezery/GZXH_AUTOSYBG/issues"
@@ -49,9 +49,9 @@ class Config(QConfig):
     userName = ConfigItem("User", "UserName", "")
     userId = ConfigItem("User", "UserId", "")
     userCourse = ConfigItem("User", "UserCourse", "")
-    apiKey = ConfigItem("User", "ApiKey", "")
-    secretKey = ConfigItem("User", "SecretKey", "")
-    updateToken = ConfigItem("User", "UpdateToken", "")
+    # apiKey = ConfigItem("User", "ApiKey", "")
+    # secretKey = ConfigItem("User", "SecretKey", "")
+    # updateToken = ConfigItem("User", "UpdateToken", "")
     downloadFolder = ConfigItem(
         "Folders", "Download",os.path.join(os.path.expanduser("~"), "Desktop") ,FolderValidator())
 

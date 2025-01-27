@@ -183,12 +183,12 @@ class SettingInterface(RouterInterface):
         #             self.baseSetting
         #         )
        
-        self.proSetting = SettingCardGroup(
-            self.tr("高级设置"), self.scrollWidget)
-        self.apiKeyCard = CoustomCard(FIF.IOT, self.tr("Api Key"), cfg.apiKey, "请输入Api Key", self.proSetting)
-        self.secretKeyCard = CoustomCard(FIF.VPN, self.tr("Secret Key"), cfg.secretKey, "请输入Secret Key", self.proSetting)
-        self.apiKeyCard.setDisabled(True)
-        self.secretKeyCard.setDisabled(True)
+        # self.proSetting = SettingCardGroup(
+        #     self.tr("高级设置"), self.scrollWidget)
+        # self.apiKeyCard = CoustomCard(FIF.IOT, self.tr("Api Key"), cfg.apiKey, "请输入Api Key", self.proSetting)
+        # self.secretKeyCard = CoustomCard(FIF.VPN, self.tr("Secret Key"), cfg.secretKey, "请输入Secret Key", self.proSetting)
+        # self.apiKeyCard.setDisabled(True)
+        # self.secretKeyCard.setDisabled(True)
 
         # personalization
         self.personalGroup = SettingCardGroup(
@@ -310,8 +310,8 @@ class SettingInterface(RouterInterface):
         # self.baseSetting.addSettingCard(self.idCard)
         # self.baseSetting.addSettingCard(self.downloadFolderCard)
 
-        self.proSetting.addSettingCard(self.apiKeyCard)
-        self.proSetting.addSettingCard(self.secretKeyCard)
+        # self.proSetting.addSettingCard(self.apiKeyCard)
+        # self.proSetting.addSettingCard(self.secretKeyCard)
 
 
         # self.personalGroup.addSettingCard(self.micaCard)
@@ -332,7 +332,7 @@ class SettingInterface(RouterInterface):
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(36, 10, 36, 0)
         # self.expandLayout.addWidget(self.baseSetting)
-        self.expandLayout.addWidget(self.proSetting)
+        # self.expandLayout.addWidget(self.proSetting)
         self.expandLayout.addWidget(self.personalGroup)
         # self.expandLayout.addWidget(self.materialGroup)
         self.expandLayout.addWidget(self.updateSoftwareGroup)

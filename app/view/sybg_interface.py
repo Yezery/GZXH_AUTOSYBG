@@ -1,11 +1,14 @@
 import sys
 from PyQt6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QDialog,QFileDialog,QSizePolicy
 from PyQt6.QtCore import QEasingCurve,Qt,QStandardPaths,QPoint,pyqtSlot,QRect,QTimer
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont,QPixmap
+from PyQt6.QtCore import QBuffer, QIODevice, QByteArray
+from io import BytesIO
 from qfluentwidgets import ToolTipPosition,ToolTipFilter,ImageLabel,PrimaryPushButton,CardWidget,FlowLayout,BodyLabel,LineEdit,CommandBarView,Action,FlyoutAnimationType,Flyout,StateToolTip,SmoothScrollArea
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Inches, Pt
 import os
+import re
 from components.RichEdit import RichEdit
 from components.Message import createMessage
 from common.config import cfg
@@ -52,7 +55,7 @@ class ImageInputGroup(QWidget):
         self.add_button.setAcceptDrops(True)
         self.add_text_button = PrimaryPushButton(FIF.ADD,"插入纯文字", self)
         self.insert_group_button.setVisible(False)  # 初始时不可见
-        self.image_script_linetext.toolbar.hide()
+        # self.image_script_linetext.toolbar.hide()
         self.insert_group_button_layout.addWidget(self.add_button,1)
         self.insert_group_button_layout.addWidget(self.add_text_button,1)
         self.insert_group_button_layout.setContentsMargins(0, 0, 0, 5)  
@@ -126,12 +129,12 @@ class ImageInputGroup(QWidget):
     def enterEvent(self, event):
         """鼠标进入时显示按钮"""
         self.insert_group_button.setVisible(True)
-        self.image_script_linetext.toolbar.show()
+        # self.image_script_linetext.toolbar.show()
 
     def leaveEvent(self, event):
         """鼠标离开时隐藏按钮"""
         self.insert_group_button.setVisible(False)
-        self.image_script_linetext.toolbar.hide()
+        # self.image_script_linetext.toolbar.hide()
 
 class DropFileUploadImages(CardWidget):
     def __init__(self, parent=None):
@@ -195,7 +198,7 @@ class DropFileUploadImages(CardWidget):
 
     def dragLeaveEvent(self, event):
         """鼠标拖出事件"""
-        self.label.setText("拖拽文件 或 点击选择图片文件")
+        self.label.setText("拖拽实验报告文件进行逆向工程 或 点击选择图片文件")
 
     def dropEvent(self, event):
         """鼠标放开事件"""
@@ -216,8 +219,86 @@ class DropFileUploadImages(CardWidget):
             if path.lower().endswith(('.png', '.jpg')):
                 image_group = ImageInputGroup(path, self)
                 self.layout.addWidget(image_group)
+        if file_paths[0].lower().endswith(('.docx')):
+            self.parentObject.summary_widget.upload_input.updateDocx(file_paths)
+            start_keyword = '【实验过程记录】'
+            end_keyword = '【实验总结（个人心得）】'
+            self.decompile_docx(start_keyword,end_keyword)
         QTimer.singleShot(3, self.scroll_to_bottom)
         self.visible()
+
+    def decompile_docx(self, start_keyword, end_keyword):
+        doc = self.parentObject.summary_widget.upload_input.doc
+        try:
+            # 初始化文字数组和图片列表
+            text_array = []
+            image_list = []
+
+            # 标志位，用于判断是否在目标区间内
+            is_target_section = False
+
+            # 定义正则表达式，匹配“图n”（n为数字）
+            image_pattern = re.compile(r"^图\d+$", re.IGNORECASE)
+
+            # 遍历文档中的每个段落
+            for paragraph in doc.paragraphs:
+                # 检查是否到达起始关键字
+                if start_keyword in paragraph.text:
+                    is_target_section = True
+                    continue  # 跳过起始关键字本身
+
+                # 检查是否到达结束关键字
+                if end_keyword in paragraph.text:
+                    is_target_section = False
+                    break  # 结束提取
+
+                # 如果在目标区间内
+                if is_target_section:
+                    # 检查段落文本是否完全匹配“图n”
+                    if image_pattern.match(paragraph.text.strip()):
+                        continue  # 如果匹配，跳过该段落
+
+                    # 将段落文本添加到文字数组中（过滤掉空字符串）
+                    if paragraph.text.strip():  # 检查是否为空字符串
+                        text_array.append(paragraph.text)
+
+                    # 遍历段落中的每个运行（run）
+                    for run in paragraph.runs:
+                        # 检查运行中是否包含图片
+                        if run.element.xpath('.//w:drawing'):
+                            # 获取图片
+                            for shape in run.element.xpath('.//w:drawing'):
+                                for inline in shape.xpath('.//wp:inline'):
+                                    # 获取图片的ID
+                                    blip = inline.xpath('.//a:blip/@r:embed')[0]
+                                    image_part = doc.part.related_parts[blip]
+
+                                    # 将图片的二进制数据加载为 QPixmap
+                                    image_data = image_part.blob
+                                    pixmap = QPixmap()
+                                    pixmap.loadFromData(image_data)
+
+                                    if not pixmap.isNull():
+                                        # 创建 ImageLabel 并添加到 image_list
+                                        image_list.append(pixmap)
+
+            # 将图片和文本添加到布局中
+            lastIdx = 0
+            for idx, image in enumerate(image_list):
+                image_group = ImageInputGroup(image, self)
+                image_group.image_script_linetext.textEdit.setMarkdown(text_array[idx])
+                self.layout.addWidget(image_group)
+                lastIdx = idx
+
+            # 处理没有图片的文本
+            for idx in range(lastIdx + 1, len(text_array)):
+                no_image_group = ImageInputGroup(None, self)
+                no_image_group.image_script_linetext.textEdit.setMarkdown(text_array[idx])
+                self.layout.addWidget(no_image_group)
+        except Exception as e:
+            print(f"Error processing document: {e}")
+            return
+
     def scroll_to_bottom(self):
         """滚动到最底部"""
         scroll_bar = self.parentObject.right_scroll_area.verticalScrollBar()  # 获取垂直滚动条
@@ -296,6 +377,7 @@ class DropFileUploadImages(CardWidget):
             # 如果目标控件未找到，直接将新的控件添加到末尾
             self.layout.addWidget(new_key)
         self.visible()
+
 class ToolsButtonGroup(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -398,6 +480,7 @@ class FileButtonGroup(QWidget):
             parent.remove_result_file(self)  # 请求父级删除该按钮组
         self.deleteLater()  # 销毁当前控件
         parent.file_buttons_map.pop(self.file_name)
+
 class ResultFile(CardWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -582,12 +665,22 @@ class ProcessTask(CardWidget):
                                 1)
                         it += 1  # 进入下一个 fragment
                     block = block.next()  # 移动到下一个块
-                    
             if image:
                 # 插入图片
                 image_paragraph = self.doc.add_paragraph()  # 使用文档对象添加新段落
                 image_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                image_paragraph.add_run().add_picture(image, width=Inches(5))  # 调整宽度
+                if isinstance(image, QPixmap):
+                    # 将 QPixmap 转换为字节流
+                    byte_array = QByteArray()
+                    buffer = QBuffer(byte_array)
+                    buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+                    image.save(buffer, "PNG")  # 保存为 PNG 格式
+                    buffer.close()
+                    # 将字节流转换为 BytesIO
+                    image_stream = BytesIO(byte_array.data())
+                    image_paragraph.add_run().add_picture(image_stream, width=Inches(5))  # 调整宽度
+                else:
+                    image_paragraph.add_run().add_picture(image, width=Inches(5))  # 调整宽度
                 # 添加图片题注（段落）
                 caption_paragraph = self.doc.add_paragraph(f"图 {pic_num}")
                 caption_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -624,23 +717,23 @@ class ProcessTask(CardWidget):
         """启动文件转换线程，处理后台转换任务"""
         self.worker = ConvertFileWorker(f"{self.get_app_path()}/temp.docx","",2)
 
+        # 启动线程
+        self.worker.start()
         # 连接信号，使用类方法作为回调
         self.worker.finished.connect(self.on_conversion_finished)
         self.worker.error.connect(self.on_conversion_error)
-
-        # 启动线程
-        self.worker.start()
+        
 
     def on_conversion_finished(self, file):
         self.add_result_list(file, "pdf")
         """文件转换完成时的回调函数"""
-        self.worker.deleteLater()  # 清理线程资源
         if self.stateTooltip:
             self.stateTooltip.setContent('输出完成啦 😆')
             self.stateTooltip.setState(True)
             self.stateTooltip = None
         self.toPDF.setEnabled(True)
         # 在这里执行其他操作，例如更新 UI 或通知用户
+        self.worker.stop()
 
     def on_conversion_error(self, error_message):
         """文件转换失败时的回调函数"""
@@ -813,6 +906,9 @@ class SYBGInterface(RouterInterface):
 
     @pyqtSlot(bool)
     def set_upload(self,r:bool):
-        if not r:
-            # 只要文件名称并去掉后缀
-            self.process_task.docx_rename.setText(os.path.splitext(os.path.basename(self.summary_widget.upload_input.file_paths[0]))[0])
+        try:
+            if not r:
+                # 只要文件名称并去掉后缀
+                self.process_task.docx_rename.setText(os.path.splitext(os.path.basename(self.summary_widget.upload_input.file_paths[0]))[0])
+        except:
+            pass

@@ -1,9 +1,11 @@
 import os
 import sys
+import webbrowser
 from qfluentwidgets import FluentIcon as FIF
 from PyQt6.QtWidgets import QFrame,QHBoxLayout,QApplication
 from PyQt6.QtCore import Qt,QSize,QTimer
 from qfluentwidgets import SubtitleLabel,setFont,MSFluentWindow,NavigationItemPosition,SplashScreen,TeachingTip,TeachingTipTailPosition,TeachingTipView,isDarkTheme
+from view.chat_interface import ChatInterface
 from utils.AutoUpdater import AutoUpdater
 from view.router_interface import RouterInterface
 from view.video_interface import VideoInterface
@@ -34,6 +36,7 @@ class Window(MSFluentWindow):
         self.initWindow()
         # create sub interface
         # self.homeInterface = HomeInterface(self)
+        self.chatInterface = ChatInterface(self)
         self.sybgInterface = SYBGInterface(self)
         self.summaryInterface = SummaryInterface(1,self)
         # self.serviceInterface = Widget('文件转换服务...开发中', self)
@@ -52,8 +55,9 @@ class Window(MSFluentWindow):
     def initNavigation(self):
         # self.addSubInterface(self.homeInterface, FIF.HOME, '首页')
         self.addSubInterface(self.sybgInterface, FIF.LABEL, '实验报告')
+        self.addSubInterface(self.chatInterface, FIF.CHAT, 'GEN')
         self.addSubInterface(self.summaryInterface, FIF.ROBOT, 'AI心得')
-        # self.addSubInterface(self.serviceInterface, FIF.TILES, '文档转换')
+        # # self.addSubInterface(self.serviceInterface, FIF.TILES, '文档转换')
         self.addSubInterface(self.videoInterface, FIF.VIDEO, '视频解析')
         
 
@@ -64,7 +68,7 @@ class Window(MSFluentWindow):
             routeKey='Help',
             icon=FIF.EXPRESSIVE_INPUT_ENTRY,
             text='帮助',
-            onClick=self.showMessageBox,
+            onClick=self.toReward,
             selectable=False,
             position=NavigationItemPosition.BOTTOM,
         )
@@ -108,18 +112,19 @@ class Window(MSFluentWindow):
                 if w.objectName() == routeKey:
                     self.stackedWidget.setCurrentWidget(w, False)
     
-    def showMessageBox(self):
-            pos = TeachingTipTailPosition.LEFT_BOTTOM
-            view = TeachingTipView(
-                icon=None,
-                title='支持作者🥰',
-                content="开发不易，如果这个项目帮助到了您，可以考虑请作者喝一杯咖啡。\n 您的支持就是作者开发和维护项目的动力🚀",
-                isClosable=True,
-                tailPosition=pos,
-                image=cfg.resource_path("images/my.jpg")
-            )
-            t = TeachingTip.make(view, self.navigationInterface.children()[-1], 3000, pos, self)
-            view.closed.connect(t.close)
+    def toReward(self):
+            # pos = TeachingTipTailPosition.LEFT_BOTTOM
+            # view = TeachingTipView(
+            #     icon=None,
+            #     title='支持作者🥰',
+            #     content="开发不易，如果这个项目帮助到了您，可以考虑请作者喝一杯咖啡。\n 您的支持就是作者开发和维护项目的动力🚀",
+            #     isClosable=True,
+            #     tailPosition=pos,
+            #     image=cfg.resource_path("images/my.jpg")
+            # )
+            # t = TeachingTip.make(view, self.navigationInterface.children()[-1], 3000, pos, self)
+            # view.closed.connect(t.close)
+            webbrowser.open("http://www.zivye.asia/zh/support")
 
 if __name__ == '__main__':
     if cfg.get(cfg.dpiScale) == "Auto":
@@ -131,6 +136,8 @@ if __name__ == '__main__':
         os.environ["QT_SCALE_FACTOR"] = str(cfg.get(cfg.dpiScale))
 
     QApplication.setAttribute(Qt.ApplicationAttribute.AA_Use96Dpi)
+    
+    
 
     app = QApplication(sys.argv)
     app.setAttribute(Qt.ApplicationAttribute.AA_Use96Dpi)

@@ -5,3 +5,5 @@
 /app/*/__pycache__
 /app/*/*/__pycache__
 temp.docx
+/app/resource/deepSeek-R1-1.5B/*
+test.py
